@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<!-- saved from url=(0018)https://nnngo.org/ -->
+<html lang="en-US" class="js csstransforms3d yes-js js_active" style=""><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="profile" href="https://gmpg.org/xfn/11">
+    <title>NNNGO – Nigeria Network of NGOs</title>
+<meta name="robots" content="max-image-preview:large">
+	<style>img:is([sizes="auto" i], [sizes^="auto," i]) { contain-intrinsic-size: 3000px 1500px }</style>
+	<meta name="dlm-version" content="5.0.21"><link rel="dns-prefetch" href="https://fonts.googleapis.com/">
+<link href="https://fonts.gstatic.com/" crossorigin="" rel="preconnect">
+<link rel="alternate" type="application/rss+xml" title="NNNGO » Feed" href="https://nnngo.org/feed/">
+<link rel="alternate" type="application/rss+xml" title="NNNGO » Comments Feed" href="https://nnngo.org/comments/feed/">
+<script>
+/* <![CDATA[ */
+window._wpemojiSettings = {"baseUrl":"https:\/\/s.w.org\/images\/core\/emoji\/15.0.3\/72x72\/","ext":".png","svgUrl":"https:\/\/s.w.org\/images\/core\/emoji\/15.0.3\/svg\/","svgExt":".svg","source":{"wpemoji":"https:\/\/nnngo.org\/wp-includes\/js\/wp-emoji.js?ver=6.7.2","twemoji":"https:\/\/nnngo.org\/wp-includes\/js\/twemoji.js?ver=6.7.2"}};
+/**
+ * @output wp-includes/js/wp-emoji-loader.js
+ */
+
+/**
+ * Emoji Settings as exported in PHP via _print_emoji_detection_script().
+ * @typedef WPEmojiSettings
+ * @type {object}
+ * @property {?object} source
+ * @property {?string} source.concatemoji
+ * @property {?string} source.twemoji
+ * @property {?string} source.wpemoji
+ * @property {?boolean} DOMReady
+ * @property {?Function} readyCallback
+ */
+
+/**
+ * Support tests.
+ * @typedef SupportTests
+ * @type {object}
+ * @property {?boolean} flag
+ * @property {?boolean} emoji
+ */
+
+/**
+ * IIFE to detect emoji support and load Twemoji if needed.
+ *
+ * @param {Window} window
+ * @param {Document} document
+ * @param {WPEmojiSettings} settings
+ */
+( function wpEmojiLoader( window, document, settings ) {
+	if ( typeof Promise === 'undefined' ) {
+		return;
+	}
+
+	var sessionStorageKey = 'wpEmojiSettingsSupports';
+	var tests = [ 'flag', 'emoji' ];
+
+	/**
+	 * Checks whether the browser supports offloading to a Worker.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @private
+	 *
+	 * @returns {boolean}
+	 */
+	function supportsWorkerOffloading() {
+		return (
+			typeof Worker !== 'undefined' &&
+			typeof OffscreenCanvas !== 'undefined' &&
+			typeof URL !== 'undefined' &&
+			URL.createObjectURL &&
+			typeof Blob !== 'undefined'
+		);
+	}
+
+	/**
+	 * @typedef SessionSupportTests
+	 * @type {object}
+	 * @property {number} timestamp
+	 * @property {SupportTests} supportTests
+	 */
+
+	/**
+	 * Get support tests from session.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @private
+	 *
+	 * @returns {?SupportTests} Support tests, or null if not set or older than 1 week.
+	 */
+	function getSessionSupportTests() {
+		try {
+			/** @type {SessionSupportTests} */
+			var item = JSON.parse(
+				sessionStorage.getItem( sessionStorageKey )
+			);
+			if (
+				typeof item === 'object' &&
+				typeof item.timestamp === 'number' &&
+				new Date().valueOf() < item.timestamp + 604800 && // Note: Number is a week in seconds.
+				typeof item.supportTests === 'object'
+			) {
+				return item.supportTests;
+			}
+		} catch ( e ) {}
+		return null;
+	}
+
+	/**
+	 * Persist the supports in session storage.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @private
+	 *
+	 * @param {SupportTests} supportTests Support tests.
+	 */
+	function setSessionSupportTests( supportTests ) {
+		try {
+			/** @type {SessionSupportTests} */
+			var item = {
+				supportTests: supportTests,
+				timestamp: new Date().valueOf()
+			};
+
+			sessionStorage.setItem(
+				sessionStorageKey,
+				JSON.stringify( item )
+			);
+		} catch ( e ) {}
+	}
+
+	/**
+	 * Checks if two sets of Emoji characters render the same visually.
+	 *
+	 * This function may be serialized to run in a Worker. Therefore, it cannot refer to variables from the containing
+	 * scope. Everything must be passed by parameters.
+	 *
+	 * @since 4.9.0
+	 *
+	 * @private
+	 *
+	 * @param {CanvasRenderingContext2D} context 2D Context.
+	 * @param {string} set1 Set of Emoji to test.
+	 * @param {string} set2 Set of Emoji to test.
+	 *
+	 * @return {boolean} True if the two sets render the same.
+	 */
+	function emojiSetsRenderIdentically( context, set1, set2 ) {
+		// Cleanup from previous test.
+		context.clearRect( 0, 0, context.canvas.width, context.canvas.height );
+		context.fillText( set1, 0, 0 );
+		var rendered1 = new Uint32Array(
+			context.getImageData(
+				0,
+				0,
+				context.canvas.width,
+				context.canvas.height
+			).data
+		);
+
+		// Cleanup from previous test.
+		context.clearRect( 0, 0, context.canvas.width, context.canvas.height );
+		context.fillText( set2, 0, 0 );
+		var rendered2 = new Uint32Array(
+			context.getImageData(
+				0,
+				0,
+				context.canvas.width,
+				context.canvas.height
+			).data
+		);
+
+		return rendered1.every( function ( rendered2Data, index ) {
+			return rendered2Data === rendered2[ index ];
+		} );
+	}
+
+	/**
+	 * Determines if the browser properly renders Emoji that Twemoji can supplement.
+	 *
+	 * This function may be serialized to run in a Worker. Therefore, it cannot refer to variables from the containing
+	 * scope. Everything must be passed by parameters.
+	 *
+	 * @since 4.2.0
+	 *
+	 * @private
+	 *
+	 * @param {CanvasRenderingContext2D} context 2D Context.
+	 * @param {string} type Whether to test for support of "flag" or "emoji".
+	 * @param {Function} emojiSetsRenderIdentically Reference to emojiSetsRenderIdentically function, needed due to minification.
+	 *
+	 * @return {boolean} True if the browser can render emoji, false if it cannot.
+	 */
+	function browserSupportsEmoji( context, type, emojiSetsRenderIdentically ) {
+		var isIdentical;
+
+		switch ( type ) {
+			case 'flag':
+				/*
+				 * Test for Transgender flag compatibility. Added in Unicode 13.
+				 *
+				 * To test for support, we try to render it, and compare the rendering to how it would look if
+				 * the browser doesn't render it correctly (white flag emoji + transgender symbol).
+				 */
+				isIdentical = emojiSetsRenderIdentically(
+					context,
+					'\uD83C\uDFF3\uFE0F\u200D\u26A7\uFE0F', // as a zero-width joiner sequence
+					'\uD83C\uDFF3\uFE0F\u200B\u26A7\uFE0F' // separated by a zero-width space
+				);
+
+				if ( isIdentical ) {
+					return false;
+				}
+
+				/*
+				 * Test for UN flag compatibility. This is the least supported of the letter locale flags,
+				 * so gives us an easy test for full support.
+				 *
+				 * To test for support, we try to render it, and compare the rendering to how it would look if
+				 * the browser doesn't render it correctly ([U] + [N]).
+				 */
+				isIdentical = emojiSetsRenderIdentically(
+					context,
+					'\uD83C\uDDFA\uD83C\uDDF3', // as the sequence of two code points
+					'\uD83C\uDDFA\u200B\uD83C\uDDF3' // as the two code points separated by a zero-width space
+				);
+
+				if ( isIdentical ) {
+					return false;
+				}
+
+				/*
+				 * Test for English flag compatibility. England is a country in the United Kingdom, it
+				 * does not have a two letter locale code but rather a five letter sub-division code.
+				 *
+				 * To test for support, we try to render it, and compare the rendering to how it would look if
+				 * the browser doesn't render it correctly (black flag emoji + [G] + [B] + [E] + [N] + [G]).
+				 */
+				isIdentical = emojiSetsRenderIdentically(
+					context,
+					// as the flag sequence
+					'\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC65\uDB40\uDC6E\uDB40\uDC67\uDB40\uDC7F',
+					// with each code point separated by a zero-width space
+					'\uD83C\uDFF4\u200B\uDB40\uDC67\u200B\uDB40\uDC62\u200B\uDB40\uDC65\u200B\uDB40\uDC6E\u200B\uDB40\uDC67\u200B\uDB40\uDC7F'
+				);
+
+				return ! isIdentical;
+			case 'emoji':
+				/*
+				 * Four and twenty blackbirds baked in a pie.
+				 *
+				 * To test for Emoji 15.0 support, try to render a new emoji: Blackbird.
+				 *
+				 * The Blackbird is a ZWJ sequence combining 🐦 Bird and ⬛ large black square.,
+				 *
+				 * 0x1F426 (\uD83D\uDC26) == Bird
+				 * 0x200D == Zero-Width Joiner (ZWJ) that links the code points for the new emoji or
+				 * 0x200B == Zero-Width Space (ZWS) that is rendered for clients not supporting the new emoji.
+				 * 0x2B1B == Large Black Square
+				 *
+				 * When updating this test for future Emoji releases, ensure that individual emoji that make up the
+				 * sequence come from older emoji standards.
+				 */
+				isIdentical = emojiSetsRenderIdentically(
+					context,
+					'\uD83D\uDC26\u200D\u2B1B', // as the zero-width joiner sequence
+					'\uD83D\uDC26\u200B\u2B1B' // separated by a zero-width space
+				);
+
+				return ! isIdentical;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Checks emoji support tests.
+	 *
+	 * This function may be serialized to run in a Worker. Therefore, it cannot refer to variables from the containing
+	 * scope. Everything must be passed by parameters.
+	 *
+	 * @since 6.3.0
+	 *
+	 * @private
+	 *
+	 * @param {string[]} tests Tests.
+	 * @param {Function} browserSupportsEmoji Reference to browserSupportsEmoji function, needed due to minification.
+	 * @param {Function} emojiSetsRenderIdentically Reference to emojiSetsRenderIdentically function, needed due to minification.
+	 *
+	 * @return {SupportTests} Support tests.
+	 */
+	function testEmojiSupports( tests, browserSupportsEmoji, emojiSetsRenderIdentically ) {
+		var canvas;
+		if (
+			typeof WorkerGlobalScope !== 'undefined' &&
+			self instanceof WorkerGlobalScope
+		) {
+			canvas = new OffscreenCanvas( 300, 150 ); // Dimensions are default for HTMLCanvasElement.
+		} else {
+			canvas = document.createElement( 'canvas' );
+		}
+
+		var context = canvas.getContext( '2d', { willReadFrequently: true } );
+
+		/*
+		 * Chrome on OS X added native emoji rendering in M41. Unfortunately,
+		 * it doesn't work when the font is bolder than 500 weight. So, we
+		 * check for bold rendering support to avoid invisible emoji in Chrome.
+		 */
+		context.textBaseline = 'top';
+		context.font = '600 32px Arial';
+
+		var supports = {};
+		tests.forEach( function ( test ) {
+			supports[ test ] = browserSupportsEmoji( context, test, emojiSetsRenderIdentically );
+		} );
+		return supports;
+	}
+
+	/**
+	 * Adds a script to the head of the document.
+	 *
+	 * @ignore
+	 *
+	 * @since 4.2.0
+	 *
+	 * @param {string} src The url where the script is located.
+	 *
+	 * @return {void}
+	 */
+	function addScript( src ) {
+		var script = document.createElement( 'script' );
+		script.src = src;
+		script.defer = true;
+		document.head.appendChild( script );
+	}
+
+	settings.supports = {
+		everything: true,
+		everythingExceptFlag: true
+	};
+
+	// Create a promise for DOMContentLoaded since the worker logic may finish after the event has fired.
+	var domReadyPromise = new Promise( function ( resolve ) {
+		document.addEventListener( 'DOMContentLoaded', resolve, {
+			once: true
+		} );
+	} );
+
+	// Obtain the emoji support from the browser, asynchronously when possible.
+	new Promise( function ( resolve ) {
+		var supportTests = getSessionSupportTests();
+		if ( supportTests ) {
+			resolve( supportTests );
+			return;
+		}
+
+		if ( supportsWorkerOffloading() ) {
+			try {
+				// Note that the functions are being passed as arguments due to minification.
+				var workerScript =
+					'postMessage(' +
+					testEmojiSupports.toString() +
+					'(' +
+					[
+						JSON.stringify( tests ),
+						browserSupportsEmoji.toString(),
+						emojiSetsRenderIdentically.toString()
+					].join( ',' ) +
+					'));';
+				var blob = new Blob( [ workerScript ], {
+					type: 'text/javascript'
+				} );
+				var worker = new Worker( URL.createObjectURL( blob ), { name: 'wpTestEmojiSupports' } );
+				worker.onmessage = function ( event ) {
+					supportTests = event.data;
+					setSessionSupportTests( supportTests );
+					worker.terminate();
+					resolve( supportTests );
+				};
+				return;
+			} catch ( e ) {}
+		}
+
+		supportTests = testEmojiSupports( tests, browserSupportsEmoji, emojiSetsRenderIdentically );
+		setSessionSupportTests( supportTests );
+		resolve( supportTests );
+	} )
+		// Once the browser emoji support has been obtained from the session, finalize the settings.
+		.then( function ( supportTests ) {
+			/*
+			 * Tests the browser support for flag emojis and other emojis, and adjusts the
+			 * support settings accordingly.
+			 */
+			for ( var test in supportTests ) {
+				settings.supports[ test ] = supportTests[ test ];
+
+				settings.supports.everything =
+					settings.supports.everything && settings.supports[ test ];
+
+				if ( 'flag' !== test ) {
+					settings.supports.everythingExceptFlag =
+						settings.supports.everythingExceptFlag &&
+						settings.supports[ test ];
+				}
+			}
+
+			settings.supports.everythingExceptFlag =
+				settings.supports.everythingExceptFlag &&
+				! settings.supports.flag;
+
+			// Sets DOMReady to false and assigns a ready function to settings.
+			settings.DOMReady = false;
+			settings.readyCallback = function () {
+				settings.DOMReady = true;
+			};
+		} )
+		.then( function () {
+			return domReadyPromise;
+		} )
+		.then( function () {
+			// When the browser can not render everything we need to load a polyfill.
+			if ( ! settings.supports.everything ) {
+				settings.readyCallback();
+
+				var src = settings.source || {};
+
+				if ( src.concatemoji ) {
+					addScript( src.concatemoji );
+				} else if ( src.wpemoji && src.twemoji ) {
+					addScript( src.twemoji );
+					addScript( src.wpemoji );
+				}
+			}
+		} );
+} )( window, document, window._wpemojiSettings );
+
+/* ]]> */
+</script>
+<link rel="stylesheet" id="elementor-frontend-css" href="./NNNGO – Nigeria Network of NGOs_files/frontend.css" media="all">
+<link rel="stylesheet" id="elementor-post-5155-css" href="./NNNGO – Nigeria Network of NGOs_files/post-5155.css" media="all">
+<link rel="stylesheet" id="elementor-post-1059-css" href="./NNNGO – Nigeria Network of NGOs_files/post-1059.css" media="all">
+<link rel="stylesheet" id="widget-heading-css" href="./NNNGO – Nigeria Network of NGOs_files/widget-heading.min.css" media="all">
+<link rel="stylesheet" id="widget-image-css" href="./NNNGO – Nigeria Network of NGOs_files/widget-image.min.css" media="all">
+<link rel="stylesheet" id="widget-text-editor-css" href="./NNNGO – Nigeria Network of NGOs_files/widget-text-editor.min.css" media="all">
+<style id="wp-emoji-styles-inline-css">
+
+	img.wp-smiley, img.emoji {
+		display: inline !important;
+		border: none !important;
+		box-shadow: none !important;
+		height: 1em !important;
+		width: 1em !important;
+		margin: 0 0.07em !important;
+		vertical-align: -0.1em !important;
+		background: none !important;
+		padding: 0 !important;
+	}
+</style>
+<style id="classic-theme-styles-inline-css">
+/**
+ * These rules are needed for backwards compatibility.
+ * They should match the button element rules in the base theme.json file.
+ */
+.wp-block-button__link {
+	color: #ffffff;
+	background-color: #32373c;
+	border-radius: 9999px; /* 100% causes an oval, but any explicit but really high value retains the pill shape. */
+
+	/* This needs a low specificity so it won't override the rules from the button element if defined in theme.json. */
+	box-shadow: none;
+	text-decoration: none;
+
+	/* The extra 2px are added to size solids the same as the outline versions.*/
+	padding: calc(0.667em + 2px) calc(1.333em + 2px);
+
+	font-size: 1.125em;
+}
+
+.wp-block-file__button {
+	background: #32373c;
+	color: #ffffff;
+	text-decoration: none;
+}
+
+</style>
+<style id="global-styles-inline-css">
+:root{--wp--preset--aspect-ratio--square: 1;--wp--preset--aspect-ratio--4-3: 4/3;--wp--preset--aspect-ratio--3-4: 3/4;--wp--preset--aspect-ratio--3-2: 3/2;--wp--preset--aspect-ratio--2-3: 2/3;--wp--preset--aspect-ratio--16-9: 16/9;--wp--preset--aspect-ratio--9-16: 9/16;--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #ffffff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgba(252,185,0,1) 0%,rgba(255,105,0,1) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgba(255,105,0,1) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;--wp--preset--shadow--natural: 6px 6px 9px rgba(0, 0, 0, 0.2);--wp--preset--shadow--deep: 12px 12px 50px rgba(0, 0, 0, 0.4);--wp--preset--shadow--sharp: 6px 6px 0px rgba(0, 0, 0, 0.2);--wp--preset--shadow--outlined: 6px 6px 0px -3px rgba(255, 255, 255, 1), 6px 6px rgba(0, 0, 0, 1);--wp--preset--shadow--crisp: 6px 6px 0px rgba(0, 0, 0, 1);}:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}:where(.wp-block-columns.is-layout-grid){gap: 2em;}:where(.wp-block-post-template.is-layout-flex){gap: 1.25em;}:where(.wp-block-post-template.is-layout-grid){gap: 1.25em;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+:where(.wp-block-post-template.is-layout-flex){gap: 1.25em;}:where(.wp-block-post-template.is-layout-grid){gap: 1.25em;}
+:where(.wp-block-columns.is-layout-flex){gap: 2em;}:where(.wp-block-columns.is-layout-grid){gap: 2em;}
+:root :where(.wp-block-pullquote){font-size: 1.5em;line-height: 1.6;}
+</style>
+<link rel="stylesheet" id="pmpro_frontend_base-css" href="./NNNGO – Nigeria Network of NGOs_files/base.css" media="all">
+<link rel="stylesheet" id="pmpro_frontend_variation_1-css" href="./NNNGO – Nigeria Network of NGOs_files/variation_1.css" media="all">
+<link rel="stylesheet" id="gainlove-opal-icon-css" href="./NNNGO – Nigeria Network of NGOs_files/opal-icons.css" media="all">
+<link rel="stylesheet" id="gainlove-carousel-css" href="./NNNGO – Nigeria Network of NGOs_files/carousel.css" media="all">
+<link rel="stylesheet" id="gainlove-boostrap-css" href="./NNNGO – Nigeria Network of NGOs_files/opal-boostrap.css" media="all">
+<link rel="stylesheet" id="gainlove-customfont-css" href="./NNNGO – Nigeria Network of NGOs_files/customfont.css" media="all">
+<link rel="stylesheet" id="gainlove-style-css" href="./NNNGO – Nigeria Network of NGOs_files/style.css" media="all">
+<style id="gainlove-style-inline-css">
+body, input, button, button[type="submit"], select, textarea{font-family:"Barlow", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;font-weight:400;color:#717171}html { font-size:16px;}.c-heading{color:#000;}.c-primary{color:#ff9f0d;}.bg-primary{background-color:#ff9f0d;}.b-primary{border-color:#ff9f0d;}.button-primary:hover{background-color:#db8400;border-color:#db8400;}.c-secondary {color:#0e926b;}.bg-secondary {background-color:#0e926b;}.b-secondary{border-color:#0e926b;}.button-secondary:hover{background-color:#096247;}input[type="text"]::placeholder,input[type="email"]::placeholder,input[type="url"]::placeholder,input[type="password"]::placeholder,input[type="search"]::placeholder,input[type="number"]::placeholder,input[type="tel"]::placeholder,input[type="range"]::placeholder,input[type="date"]::placeholder,input[type="month"]::placeholder,input[type="week"]::placeholder,input[type="time"]::placeholder,input[type="datetime"]::placeholder,input[type="datetime-local"]::placeholder,input[type="color"]::placeholder,input[type="text"],input[type="email"],input[type="url"],input[type="password"],input[type="search"],input[type="number"],input[type="tel"],input[type="range"],input[type="date"],input[type="month"],input[type="week"],input[type="time"],input[type="datetime"],input[type="datetime-local"],input[type="color"],textarea::placeholder,textarea,.mainmenu-container li a span,.post-date a,.comment-metadata,.widget_search button[type="submit"],.c-body,.site-header-account .account-links-menu li a,.site-header-account .account-dashboard li a,.comment-form a,.give-wrap .give-form-tabs .ui-tabs-nav a,.elementor-widget-opal-give-campain .give-card__text,.elementor-nav-menu--dropdown a,.elementor-search-form--skin-minimal .elementor-search-form__icon,form[id*='give-form'] .form-row select.required,form[id*='give-form'] .form-row textarea.required,form[id*='give-form'] .form-row input.required[type="text"],form[id*='give-form'] .form-row input.required[type="tel"],form[id*='give-form'] .form-row input.required[type="email"],form[id*='give-form'] .form-row input.required[type="password"],form[id*='give-form'] .form-row input.required[type="url"],#give-recurring-form .form-row select.required,#give-recurring-form .form-row textarea.required,#give-recurring-form .form-row input.required[type="text"],#give-recurring-form .form-row input.required[type="tel"],#give-recurring-form .form-row input.required[type="email"],#give-recurring-form .form-row input.required[type="password"],#give-recurring-form .form-row input.required[type="url"],form.give-form .form-row select.required,form.give-form .form-row textarea.required,form.give-form .form-row input.required[type="text"],form.give-form .form-row input.required[type="tel"],form.give-form .form-row input.required[type="email"],form.give-form .form-row input.required[type="password"],form.give-form .form-row input.required[type="url"],table.give-table {color:#717171; }.widget-area strong,h1,h2,h3,h4,h5,h6,fieldset legend,.list-square li strong,th,a,.main-navigation .top-menu > li > a,.site-header .sticky-show .site-description,.site-header .sticky-show .site-title a,.site-header .sticky-show .mainmenu-container .top-menu > li > a,.post-content .posted-on a,.entry-content strong,.entry-content dt,.entry-content th,.entry-content dt a,.entry-content th a,body.single-post article.type-post .entry-title,body.single-osf_story article.type-post .entry-title,body.single-osf_event article.type-post .entry-title,body.single-post .post-navigation .nav-links .nav-links-inner .nav-title,body.single-osf_story .post-navigation .nav-links .nav-links-inner .nav-title,body.single-osf_event .post-navigation .nav-links .nav-links-inner .nav-title,.post-related-block .related-heading,.comments-title,.comment-content strong,.comment-author,.comment-author a,.comment-metadata a.comment-edit-link,.comment-content table th,.comment-content table td a,.comment-content dt,.comment-respond .comment-reply-title,.widget a,.widget.osf_widget_campaign ul li,.widget.widget_archive ul li,.widget.widget_categories ul li,.widget.widget_nav_menu ul li,.widget.widget_meta ul li,.widget.widget_pages ul li,.widget.osf_widget_campaign a,.widget.widget_archive a,.widget.widget_categories a,.widget.widget_nav_menu a,.widget.widget_meta a,.widget.widget_pages a,.widget.media-post-layout .entry-meta i,h2.widget-title,h3.widgettitle,h2.widgettitle,.profile-wrapper .login-form-title,.widget_rss .rss-date,.widget_rss li cite,.c-heading,.related-posts .related-heading,.author-wrapper .author-name,.page .entry-header .entry-title,.search .site-content .page-title,.site-header-account .login-form-title,.comment-form .comment-notes,.elementor-widget-accordion .elementor-accordion .elementor-tab-title,.elementor-counter .elementor-counter-number-wrapper,.elementor-widget-icon-box:not(:hover) .elementor-icon-box-title,.elementor-teams-wrapper .elementor-team-name,.elementor-widget-opal-testimonials .elementor-testimonial-title,.elementor-widget-opal-testimonials .elementor-testimonial-name,.elementor-widget-opal-testimonials .layout_2 .elementor-testimonial-content,[id*='give-form'] div#give-sidebar-left .inner > div.give-goal-progress .raised .value,[id*='give-form'] div#give-sidebar-left .give-goal-progress .time-left .value,form[id*='give-form'] .give-donation-amount .give-currency-symbol,form[id*='give-form'] .give-donation-amount #give-amount,form[id*='give-form'] .give-donation-amount #give-amount-text,form[id*='give-form'] #give-final-total-wrap .give-donation-total-label,.opal-give-message p,#give-email-access-form label,#give-login-form label,#give-login-form legend,.give-goal-progress .raised .value,.give-goal-progress .percentage,.give-wrap .barometer span {color:#000; }.btn-link,.elementor-element .elementor-button-link .elementor-button,.button-link,.mailchimp-button-link button,.mailchimp-button-link button[type="submit"],.breadcrumb,.breadcrumb .separator,a:hover,a:active,.mainmenu-container ul ul .menu-item > a:hover,.mainmenu-container ul ul .menu-item > a:active,.mainmenu-container ul ul .menu-item > a:focus,.mainmenu-container li.current-menu-parent > a,.mainmenu-container .menu-item > a:hover,.mainmenu-container li li.current_page_item a:hover,.mainmenu-container li li.current-menu-item a:hover,.mainmenu-container li li.current_page_item a:focus,.mainmenu-container li li.current-menu-item a:focus,.site-header .header-group .search-submit:hover,.site-header .header-group .search-submit:focus,.post-content .posted-on a:hover,.entry-title a:hover,.entry-meta .entry-category,.entry-meta .entry-category a,.pbr-social-share a:hover,body.single-post .post-navigation .nav-links .nav-links-inner .meta-nav,body.single-osf_story .post-navigation .nav-links .nav-links-inner .meta-nav,body.single-osf_event .post-navigation .nav-links .nav-links-inner .meta-nav,.wp-block-calendar tfoot a:hover,.error404 h1,.site-footer .widget.widget_archive a:hover,.site-footer .widget.widget_archive a:focus,.site-footer .widget.widget_categories a:hover,.site-footer .widget.widget_categories a:focus,.site-footer .widget.widget_nav_menu a:hover,.site-footer .widget.widget_nav_menu a:focus,.site-footer .widget.widget_meta a:hover,.site-footer .widget.widget_meta a:focus,.site-footer .widget.widget_pages a:hover,.site-footer .widget.widget_pages a:focus,.site-footer .widget a:hover,.site-footer .widget a:focus,.breadcrumb a:hover,.breadcrumb a:hover span,.comment-author a:hover,.comment-metadata a:hover,.comment-reply-link,.widget a:hover,.widget a:focus,.widget.osf_widget_campaign a:hover,.widget.osf_widget_campaign a:focus,.widget.widget_archive a:hover,.widget.widget_archive a:focus,.widget.widget_categories a:hover,.widget.widget_categories a:focus,.widget.widget_nav_menu a:hover,.widget.widget_nav_menu a:focus,.widget.widget_meta a:hover,.widget.widget_meta a:focus,.widget.widget_pages a:hover,.widget.widget_pages a:focus,.widget_recent_entries li a:hover,.widget_recent_entries li a:active,.button-outline-primary,.elementor-wpcf7-button-outline_primary input[type="button"],.elementor-wpcf7-button-outline_primary input[type="submit"],.elementor-wpcf7-button-outline_primary button[type="submit"],.mailchimp-button-outline_primary button,.mailchimp-button-outline_primary button[type="submit"],.elementor-element .elementor-button-outline_primary .elementor-button,.c-primary,.navigation-button .menu-toggle:hover,.navigation-button .menu-toggle:focus,.entry-meta a:hover,.site-header-account .account-dropdown a.register-link,.site-header-account .account-dropdown a.lostpass-link,.site-header-account .account-links-menu li a:hover,.site-header-account .account-dashboard li a:hover,.comment-form a:hover,.wp_widget_tag_cloud a:hover,.wp_widget_tag_cloud a:focus,#secondary .elementor-widget-container h5:first-of-type,.elementor-widget-sidebar .elementor-widget-container h5:first-of-type,#give-sidebar-left .elementor-widget-container h5:first-of-type,.elementor-nav-menu-popup .mfp-close,#secondary .elementor-widget-wp-widget-recent-posts a,.elementor-widget-sidebar .elementor-widget-wp-widget-recent-posts a,#give-sidebar-left .elementor-widget-wp-widget-recent-posts a,.elementor-widget-accordion .elementor-accordion .elementor-tab-title .elementor-accordion-icon,.contactform-content .form-title,.elementor-widget-opal-countdown .elementor-countdown-digits,.dual-heading-container .dual-heading-second-header,.elementor-widget-opal-featured-box .elementor-featured-box-name:hover,.feature-campaign__item .campaign-body .campaign-head .give-card__title a:hover,.elementor-widget-heading .sub-title,.elementor-widget-icon-box:not(:hover) .elementor-icon,.elementor-widget-icon-box:hover .elementor-icon,.elementor-widget-icon-box:hover .elementor-icon-box-title,.elementor-widget-opal-image-hotspots .elementor-hotspots-item-number,.elementor-widget-opal-image-gallery .elementor-galerry__filter.elementor-active,.elementor-widget-item-list .elementor-item-list-number,.mailchimp-button-default button i,.mailchimp-button-default button[type="submit"] i,.mailchimp-button-default button:hover,.mailchimp-button-default button[type="submit"]:hover,.elementor-nav-menu--main.elementor-nav-menu--layout-horizontal .elementor-nav-menu a.elementor-sub-item.elementor-item-active,.elementor-nav-menu--main .elementor-item.highlighted,.elementor-nav-menu--main .elementor-item.elementor-item-active,.elementor-nav-menu--main .elementor-item:hover,.elementor-nav-menu--main .elementor-item:focus,.elementor-nav-menu--main .current-menu-ancestor .elementor-item.has-submenu,.elementor-nav-menu--main .current-menu-item .elementor-item,.elementor-nav-menu--popup .elementor-item.highlighted,.elementor-nav-menu--popup .elementor-item.elementor-item-active,.elementor-nav-menu--popup .elementor-item:hover,.elementor-nav-menu--popup .elementor-item:focus,.elementor-nav-menu--popup .elementor-nav-menu--dropdown a:hover,.elementor-nav-menu--popup .elementor-nav-menu--dropdown a.highlighted,.elementor-nav-menu--dropdown:not(.mega-menu) a:hover,.elementor-nav-menu--dropdown:not(.mega-menu) a.highlighted,.elementor-nav-menu--dropdown:not(.mega-menu) a.has-submenu,.elementor-menu-toggle:hover i,.elementor-menu-toggle:hover .menu-toggle-title,.elementor-widget-opal-phone:not(:hover) i,.elementor-widget-opal-phone:not(:hover) .elementor-phone-title,.elementor-widget-opal-phone:not(:hover) .elementor-phone-subtitle,.elementor-widget-opal-popup-template .elementor-toggle i:hover,.elementor-widget-opal-popup-template .button-close:hover,.elementor-price-table__ribbon,.elementor-widget-opal-reason_carousel .elementor-content-wrap:hover .elementor-heading-title,.elementor-widget-opal-schedules .schedules-item:hover .title-schedules,.elementor-widget-opal-schedules .item-meta i,.elementor-widget-opal-schedules .author-schedules a:hover,.elementor-widget-opal-schedules .button-schedules:hover i,.elementor-widget-opal-schedules .button-schedules.active i,.elementor-search-form--skin-full_screen .elementor-search-form__toggle:hover,.elementor-widget-social-icons.elementor-social-custom .elementor-social-icon:hover i,.elementor-widget-opal-story-grid .entry-meta a:hover,.elementor-widget-opal-tabs.elementor-widget-tabs .elementor-tab-desktop-title:hover,.elementor-widget-opal-tabs.elementor-widget-tabs .elementor-tab-desktop-title.elementor-active,.elementor-teams-wrapper .team-icon-socials a:hover,.elementor-video-popup:hover .elementor-video-icons,.elementor-video-popup:hover .elementor-video-title,form[id*='give-form'] #give-final-total-wrap .give-final-total-amount,#give_profile_editor_form legend i,.img-give-form i,#give-login-form legend:after,.sidebar-donor-wall .give-donor__read-more:hover,.archive-give-forms1 .give-wrap .give-goal-progress .raised .percentage,table.give-table a,.give-donor__total,.profile-wrapper .login-profile .lostpass-link,.profile-wrapper .login-profile .register-link,.profile-campaign__item .campaign-meta a:hover,.profile-campaign__item .give-card__title a:hover,.give-wrap .give-card__category,.give-wrap .give-form-tabs .ui-tabs-nav li sup,.give-wrap .give-form-tabs .ui-tabs-nav li:hover a,.give-wrap .give-form-tabs .ui-tabs-nav li a:focus,.give-wrap .give-form-tabs .ui-tabs-nav li.ui-tabs-active a,.give-wrap .sidebar-creator .campaigns-count,.post-type-archive-osf_story .entry-meta a:hover,.tax-osf_story_category .entry-meta a:hover {color:#ff9f0d; }.f-primary {fill:#ff9f0d; }.button-primary,input[type="reset"],input.secondary[type="button"],input.secondary[type="reset"],input.secondary[type="submit"],input[type="button"],input[type="submit"],button[type="submit"],.scrollup,.elementor-widget-opal-account .site-header-account .account-dropdown .account-inner button[type="submit"],.elementor-wpcf7-button-primary_gradient input[type="button"][type="submit"],.elementor-wpcf7-button-primary_gradient input[type="submit"],.elementor-wpcf7-button-primary_gradient button[type="submit"],.elementor-wpcf7-button-primary input[type="button"][type="submit"],.elementor-wpcf7-button-primary input[type="submit"],.elementor-wpcf7-button-primary button[type="submit"],.elementor-widget-opal-give-form .give-submit-button-wrap .give-submit,.mailchimp-button-primary button,.mailchimp-button-primary button[type="submit"],[id^='give-user-login-submit'] .give-submit,.give-submit-button-wrap .give-submit,.give-btn.give-default-level,.give-btn:focus,.give-btn:hover,button.give-btn-reveal,button.give-btn-modal,.give-wrap .btn-donate-now,.button-secondary,.secondary-button .search-submit,.elementor-wpcf7-button-secondary input[type="button"][type="submit"],.elementor-wpcf7-button-secondary input[type="submit"],.elementor-wpcf7-button-secondary button[type="submit"],.mailchimp-button-secondary button,.mailchimp-button-secondary button[type="submit"],.button-default:hover,.button-primary-gradient,::selection,.list-square li:before,.page-numbers:not(.dots):not(.next):not(.prev):hover,.page-links .post-page-numbers:not(.dots):not(.next):not(.prev):hover,.page-numbers:not(.dots):not(.next):not(.prev):focus,.page-links .post-page-numbers:not(.dots):not(.next):not(.prev):focus,.page-numbers.current:not(.dots):not(.next):not(.prev),.page-links .current.post-page-numbers:not(.dots):not(.next):not(.prev),.page-numbers.next:hover,.page-links .next.post-page-numbers:hover,.page-numbers.prev:hover,.page-links .prev.post-page-numbers:hover,.comments-link span,.post-content .posted-on:after,.cat-tags-links .tags-links a:hover,.wp-block-tag-cloud a:hover,.site-footer .widget .tagcloud a:hover,.site-footer .widget .tagcloud a:focus,.site-footer .widget.widget_tag_cloud a:hover,.site-footer .widget.widget_tag_cloud a:focus,h2.widget-title:before,h3.widgettitle:before,h2.widgettitle:before,.profile-wrapper .login-form-title:before,.widget .tagcloud a:hover,.widget .tagcloud a:focus,.widget.widget_tag_cloud a:hover,.widget.widget_tag_cloud a:focus,.button-outline-dark:hover,.elementor-element .elementor-button-outline_dark .elementor-button:hover,.button-outline-dark:active,.elementor-element .elementor-button-outline_dark .elementor-button:active,.button-outline-dark:focus,.elementor-element .elementor-button-outline_dark .elementor-button:focus,.button-dark:hover,.more-link:hover,.elementor-element .elementor-button-dark .elementor-button:hover,.mailchimp-button-dark button:hover,.button-dark:active,.more-link:active,.elementor-element .elementor-button-dark .elementor-button:active,.mailchimp-button-dark button:active,.button-dark:focus,.more-link:focus,.elementor-element .elementor-button-dark .elementor-button:focus,.mailchimp-button-dark button:focus,.button-light:hover,.elementor-element .elementor-button-light .elementor-button:hover,.mailchimp-button-light button:hover,.sidebar-donor-wall .give-donor__load_more:hover,.button-light:active,.elementor-element .elementor-button-light .elementor-button:active,.mailchimp-button-light button:active,.give-btn:active,.sidebar-donor-wall .give-donor__load_more:active,.button-light:focus,.elementor-element .elementor-button-light .elementor-button:focus,.mailchimp-button-light button:focus,.sidebar-donor-wall .give-donor__load_more:focus,.wp-block-button__link:hover,.elementor-element .elementor-button-primary .elementor-button,.button-outline-primary:hover,.elementor-wpcf7-button-outline_primary input:hover[type="button"],.elementor-wpcf7-button-outline_primary input:hover[type="submit"],.elementor-wpcf7-button-outline_primary button:hover[type="submit"],.mailchimp-button-outline_primary button:hover,.button-outline-primary:active,.elementor-wpcf7-button-outline_primary input:active[type="button"],.elementor-wpcf7-button-outline_primary input:active[type="submit"],.elementor-wpcf7-button-outline_primary button:active[type="submit"],.mailchimp-button-outline_primary button:active,.button-outline-primary.active,.elementor-wpcf7-button-outline_primary input.active[type="button"],.elementor-wpcf7-button-outline_primary input.active[type="submit"],.elementor-wpcf7-button-outline_primary button.active[type="submit"],.mailchimp-button-outline_primary button.active,.show > .button-outline-primary.dropdown-toggle,.elementor-wpcf7-button-outline_primary .show > input.dropdown-toggle[type="button"],.elementor-wpcf7-button-outline_primary .show > input.dropdown-toggle[type="submit"],.elementor-wpcf7-button-outline_primary .show > button.dropdown-toggle[type="submit"],.mailchimp-button-outline_primary .show > button.dropdown-toggle,.elementor-element .elementor-button-outline_primary .elementor-button:hover,.elementor-element .elementor-button-outline_primary .elementor-button:active,.elementor-element .elementor-button-outline_primary .elementor-button:focus,.bg-primary,.owl-theme.owl-carousel .owl-dots .owl-dot:hover span,.owl-theme.owl-carousel .owl-dots .owl-dot.active span,.elementor-widget-opal-account .site-header-account .account-dashboard li a:hover,.img-animated .elementor-image:after,.col-animated:after,.elementor-element .elementor-button-secondary .elementor-button:after,.elementor-element .elementor-button-outline_secondary .elementor-button:before,.elementor-cta .elementor-cta_circle,.elementor-show-before-yes .wpcf7:before,.elementor-counter .heading-decor,.elementor-widget-divider .elementor-divider-separator:before,.elementor-flip-box__front,.categories_bkg,.categories_bkg:before,.categories_bkg:after,.campain-grid-style-1 .give-wrap .give-card__link,.elementor-widget-heading .heading-decor,.elementor-widget-icon-box .image-box-decor,.elementor-widget-image-box .image-box-decor,.opal-image-hotspots-main-icons .opal-image-hotspots-icon:not(.style-2) span,.opal-image-hotspots-main-icons .opal-image-hotspots-icon.style-2:hover,.tooltipster-sidetip div.tooltipster-box,.elementor-widget-opal-image-gallery .elementor-galerry__filter.elementor-active sup,.elementor-nav-menu--main.elementor-nav-menu--layout-horizontal:not(.e--pointer-framed) .elementor-nav-menu > li.current-menu-parent > a:before,.elementor-nav-menu--main.elementor-nav-menu--layout-horizontal:not(.e--pointer-framed) .elementor-nav-menu > li.current-menu-parent > a:after,.elementor-nav-menu--main.e--pointer-dot .elementor-item.elementor-item-active:before,.elementor-nav-menu--main.e--pointer-dot .elementor-item:not(:hover):before,.elementor-nav-menu--main.e--pointer-dot .elementor-item:hover:before,.elementor-nav-menu--main:not(.e--pointer-framed) .elementor-item.elementor-item-active:before,.elementor-nav-menu--main:not(.e--pointer-framed) .elementor-item.elementor-item-active:after,.elementor-nav-menu--main:not(.e--pointer-framed) .elementor-item:before,.elementor-nav-menu--main:not(.e--pointer-framed) .elementor-item:after,.elementor-nav-menu--popup.e--pointer-dot .elementor-item.elementor-item-active:before,.elementor-nav-menu--popup.e--pointer-dot .elementor-item:hover:before,.e--pointer-dot .elementor-item:before,.e--pointer-underline .elementor-item .menu-title:before,.e--pointer-underline .elementor-item .menu-title:after,.elementor-price-table,.elementor-widget-opal-reason_carousel .elementor-reason-number span,.elementor-widget-opal-schedules .item-icon_label .icon-label,.elementor-widget-opal-schedules .schedules-style-1 .schedules-day:before,.elementor-widget-opal-schedules .schedules-style-2 .schedules-day,.elementor-widget-opal-schedules .schedules-style-3 .schedules-day:before,.elementor-widget-opal-text_carousel.text-carousel-style-2 .owl-theme.owl-carousel .owl-nav [class*='owl-']:hover:before,[id*='give-form'] div#give-sidebar-left .give-goal-progress .button-progress-link:hover,form[id*='give-form'] input[type="radio"]:checked + label:after,.give-progress-bar > span,.profile-wrapper .account-title:after,.profile-campaign__item .edit-campaign:hover,.profile-campaign__item .delete-campaign:hover,.author-profile-campaign-title:before,.give-wrap .opal-popup-wrapper [class*="opal-icon-"]:hover,.give-wrap .give-form-tabs .ui-tabs-nav a:after {background-color:#ff9f0d; }.button-primary,input[type="reset"],input.secondary[type="button"],input.secondary[type="reset"],input.secondary[type="submit"],input[type="button"],input[type="submit"],button[type="submit"],.scrollup,.elementor-widget-opal-account .site-header-account .account-dropdown .account-inner button[type="submit"],.elementor-wpcf7-button-primary_gradient input[type="button"][type="submit"],.elementor-wpcf7-button-primary_gradient input[type="submit"],.elementor-wpcf7-button-primary_gradient button[type="submit"],.elementor-wpcf7-button-primary input[type="button"][type="submit"],.elementor-wpcf7-button-primary input[type="submit"],.elementor-wpcf7-button-primary button[type="submit"],.elementor-widget-opal-give-form .give-submit-button-wrap .give-submit,.mailchimp-button-primary button,.mailchimp-button-primary button[type="submit"],[id^='give-user-login-submit'] .give-submit,.give-submit-button-wrap .give-submit,.give-btn.give-default-level,.give-btn:focus,.give-btn:hover,button.give-btn-reveal,button.give-btn-modal,.give-wrap .btn-donate-now,.button-secondary,.secondary-button .search-submit,.elementor-wpcf7-button-secondary input[type="button"][type="submit"],.elementor-wpcf7-button-secondary input[type="submit"],.elementor-wpcf7-button-secondary button[type="submit"],.mailchimp-button-secondary button,.mailchimp-button-secondary button[type="submit"],.button-default:hover,.form-control:focus,input[type="text"]:focus,input[type="email"]:focus,input[type="url"]:focus,input[type="password"]:focus,input[type="search"]:focus,input[type="number"]:focus,input[type="tel"]:focus,input[type="range"]:focus,input[type="date"]:focus,input[type="month"]:focus,input[type="week"]:focus,input[type="time"]:focus,input[type="datetime"]:focus,input[type="datetime-local"]:focus,input[type="color"]:focus,textarea:focus,.page-numbers:not(.dots):not(.next):not(.prev):hover,.page-links .post-page-numbers:not(.dots):not(.next):not(.prev):hover,.page-numbers:not(.dots):not(.next):not(.prev):focus,.page-links .post-page-numbers:not(.dots):not(.next):not(.prev):focus,.page-numbers.current:not(.dots):not(.next):not(.prev),.page-links .current.post-page-numbers:not(.dots):not(.next):not(.prev),.page-numbers.next:hover,.page-links .next.post-page-numbers:hover,.page-numbers.prev:hover,.page-links .prev.post-page-numbers:hover,.comment-reply-link,.button-outline-dark:hover,.elementor-element .elementor-button-outline_dark .elementor-button:hover,.button-outline-dark:active,.elementor-element .elementor-button-outline_dark .elementor-button:active,.button-outline-dark:focus,.elementor-element .elementor-button-outline_dark .elementor-button:focus,.button-dark:hover,.more-link:hover,.elementor-element .elementor-button-dark .elementor-button:hover,.mailchimp-button-dark button:hover,.button-dark:active,.more-link:active,.elementor-element .elementor-button-dark .elementor-button:active,.mailchimp-button-dark button:active,.button-dark:focus,.more-link:focus,.elementor-element .elementor-button-dark .elementor-button:focus,.mailchimp-button-dark button:focus,.button-light:hover,.elementor-element .elementor-button-light .elementor-button:hover,.mailchimp-button-light button:hover,.sidebar-donor-wall .give-donor__load_more:hover,.button-light:active,.elementor-element .elementor-button-light .elementor-button:active,.mailchimp-button-light button:active,.give-btn:active,.sidebar-donor-wall .give-donor__load_more:active,.button-light:focus,.elementor-element .elementor-button-light .elementor-button:focus,.mailchimp-button-light button:focus,.sidebar-donor-wall .give-donor__load_more:focus,.wp-block-button__link:hover,.elementor-element .elementor-button-primary .elementor-button,.button-outline-primary,.elementor-wpcf7-button-outline_primary input[type="button"],.elementor-wpcf7-button-outline_primary input[type="submit"],.elementor-wpcf7-button-outline_primary button[type="submit"],.mailchimp-button-outline_primary button,.mailchimp-button-outline_primary button[type="submit"],.elementor-element .elementor-button-outline_primary .elementor-button,.button-outline-primary:hover,.elementor-wpcf7-button-outline_primary input:hover[type="button"],.elementor-wpcf7-button-outline_primary input:hover[type="submit"],.elementor-wpcf7-button-outline_primary button:hover[type="submit"],.mailchimp-button-outline_primary button:hover,.button-outline-primary:active,.elementor-wpcf7-button-outline_primary input:active[type="button"],.elementor-wpcf7-button-outline_primary input:active[type="submit"],.elementor-wpcf7-button-outline_primary button:active[type="submit"],.mailchimp-button-outline_primary button:active,.button-outline-primary.active,.elementor-wpcf7-button-outline_primary input.active[type="button"],.elementor-wpcf7-button-outline_primary input.active[type="submit"],.elementor-wpcf7-button-outline_primary button.active[type="submit"],.mailchimp-button-outline_primary button.active,.show > .button-outline-primary.dropdown-toggle,.elementor-wpcf7-button-outline_primary .show > input.dropdown-toggle[type="button"],.elementor-wpcf7-button-outline_primary .show > input.dropdown-toggle[type="submit"],.elementor-wpcf7-button-outline_primary .show > button.dropdown-toggle[type="submit"],.mailchimp-button-outline_primary .show > button.dropdown-toggle,.elementor-element .elementor-button-outline_primary .elementor-button:hover,.elementor-element .elementor-button-outline_primary .elementor-button:active,.elementor-element .elementor-button-outline_primary .elementor-button:focus,.b-primary,.campain-grid-style-1 .give-wrap .give-card__link,.elementor-widget-opal-give-form .give-display-onpage form[id*='give-form'] .give-donation-amount #give-amount:hover,.elementor-widget-opal-give-form .give-display-onpage form[id*='give-form'] .give-donation-amount #give-amount:focus,.elementor-widget-opal-give-form .give-display-onpage form[id*='give-form'] .give-donation-amount #give-text-input:hover,.elementor-widget-opal-give-form .give-display-onpage form[id*='give-form'] .give-donation-amount #give-text-input:focus,.elementor-widget-opal-give-form .give-display-onpage form[id*='give-form'] .give-donation-amount #give-amount-text:hover,.elementor-widget-opal-give-form .give-display-onpage form[id*='give-form'] .give-donation-amount #give-amount-text:focus,.elementor-widget-icon-box:hover .elementor-icon,.elementor-widget-icon-box:hover .elementor-icon-box-title,.mc4wp-form-fields:focus-within,.e--pointer-framed .elementor-item.elementor-item-active:before,.e--pointer-framed .elementor-item.elementor-item-active:after,.e--pointer-framed .elementor-item:before,.e--pointer-framed .elementor-item:after,.elementor-nav-menu--main > .elementor-nav-menu,.elementor-nav-menu--main .elementor-nav-menu ul,.elementor-search-form__container:not(.elementor-search-form--full-screen):focus-within,.elementor-search-form--skin-full_screen .elementor-search-form__toggle:hover,.elementor-widget-opal-text_carousel.text-carousel-style-2 .elementor-content-wrap,.elementor-video-popup:hover .elementor-video-icons,.elementor-video-popup:hover .elementor-video-title,[id*='give-form'] div#give-sidebar-left .give-goal-progress .button-progress-link:hover,form[id*='give-form'] .form-row select:focus,form[id*='give-form'] .form-row textarea:focus,form[id*='give-form'] .form-row input[type="text"]:focus,form[id*='give-form'] .form-row input[type="tel"]:focus,form[id*='give-form'] .form-row input[type="email"]:focus,form[id*='give-form'] .form-row input[type="password"]:focus,form[id*='give-form'] .form-row input[type="url"]:focus,#give-recurring-form .form-row select:focus,#give-recurring-form .form-row textarea:focus,#give-recurring-form .form-row input[type="text"]:focus,#give-recurring-form .form-row input[type="tel"]:focus,#give-recurring-form .form-row input[type="email"]:focus,#give-recurring-form .form-row input[type="password"]:focus,#give-recurring-form .form-row input[type="url"]:focus,form.give-form .form-row select:focus,form.give-form .form-row textarea:focus,form.give-form .form-row input[type="text"]:focus,form.give-form .form-row input[type="tel"]:focus,form.give-form .form-row input[type="email"]:focus,form.give-form .form-row input[type="password"]:focus,form.give-form .form-row input[type="url"]:focus {border-color:#ff9f0d; }.elementor-widget-opal-reason_carousel .elementor-content-wrap,.elementor-widget-opal-tabs.elementor-tabs-view-horizontal .elementor-tab-title.elementor-active,.elementor-widget-opal-tabs.elementor-tabs-view-horizontal .elementor-tab-title:hover {border-top-color:#ff9f0d; }.elementor-nav-menu--layout-horizontal .elementor-nav-menu li.menu-item-has-children:before,.elementor-nav-menu--layout-horizontal .elementor-nav-menu li.has-mega-menu:before,.elementor-widget-opal-tabs.elementor-tabs-view-horizontal .elementor-tab-title.elementor-active,.elementor-widget-opal-tabs.elementor-tabs-view-horizontal .elementor-tab-title:hover {border-bottom-color:#ff9f0d; }.btn-link:focus,.elementor-element .elementor-button-link .elementor-button:focus,.btn-link:hover,.elementor-element .elementor-button-link .elementor-button:hover,.button-link:focus,.mailchimp-button-link button:focus,.button-link:hover,.mailchimp-button-link button:hover,.widget_search button[type="submit"]:hover,.widget_search button[type="submit"]:focus,.elementor-widget-opal-phone:hover i,.elementor-widget-opal-phone:hover .elementor-phone-title,.elementor-widget-opal-phone:hover .elementor-phone-subtitle,.elementor-search-form .elementor-search-form__submit:active,.elementor-search-form .elementor-search-form__submit:hover,.profile-wrapper .login-profile .lostpass-link:hover,.profile-wrapper .login-profile .register-link:hover,.profile-wrapper .profile-avatar .opal-give-button-edit-avatar:hover {color:#db8400; }.button-primary:hover,input:hover[type="reset"],input:hover[type="button"],input:hover[type="submit"],button:hover[type="submit"],.scrollup:hover,.elementor-widget-opal-account .site-header-account .account-dropdown .account-inner button:hover[type="submit"],.elementor-wpcf7-button-primary_gradient input:hover[type="submit"],.elementor-wpcf7-button-primary_gradient button:hover[type="submit"],.elementor-wpcf7-button-primary input:hover[type="submit"],.elementor-wpcf7-button-primary button:hover[type="submit"],.mailchimp-button-primary button:hover,[id^='give-user-login-submit'] .give-submit:hover,.give-submit-button-wrap .give-submit:hover,.give-btn:hover,button.give-btn-reveal:hover,button.give-btn-modal:hover,.give-wrap .btn-donate-now:hover,.button-primary:active,input:active[type="reset"],input:active[type="button"],input:active[type="submit"],button:active[type="submit"],.scrollup:active,.elementor-widget-opal-account .site-header-account .account-dropdown .account-inner button:active[type="submit"],.elementor-wpcf7-button-primary_gradient input:active[type="submit"],.elementor-wpcf7-button-primary_gradient button:active[type="submit"],.elementor-wpcf7-button-primary input:active[type="submit"],.elementor-wpcf7-button-primary button:active[type="submit"],.mailchimp-button-primary button:active,[id^='give-user-login-submit'] .give-submit:active,.give-submit-button-wrap .give-submit:active,.give-btn.give-default-level:active,.give-btn:active:focus,button.give-btn-reveal:active,button.give-btn-modal:active,.give-wrap .btn-donate-now:active,.button-primary.active,input.active[type="reset"],input.active[type="button"],input.active[type="submit"],button.active[type="submit"],.active.scrollup,.elementor-widget-opal-account .site-header-account .account-dropdown .account-inner button.active[type="submit"],.elementor-wpcf7-button-primary_gradient input.active[type="submit"],.elementor-wpcf7-button-primary_gradient button.active[type="submit"],.elementor-wpcf7-button-primary input.active[type="submit"],.elementor-wpcf7-button-primary button.active[type="submit"],.mailchimp-button-primary button.active,[id^='give-user-login-submit'] .active.give-submit,.give-submit-button-wrap .active.give-submit,.active.give-btn.give-default-level,.active.give-btn:focus,button.active.give-btn-reveal,button.active.give-btn-modal,.give-wrap .active.btn-donate-now,.show > .button-primary.dropdown-toggle,.show > input.dropdown-toggle[type="reset"],.show > input.dropdown-toggle[type="button"],.show > input.dropdown-toggle[type="submit"],.show > button.dropdown-toggle[type="submit"],.show > .dropdown-toggle.scrollup,.elementor-widget-opal-account .site-header-account .account-dropdown .account-inner .show > button.dropdown-toggle[type="submit"],.elementor-wpcf7-button-primary_gradient .show > input.dropdown-toggle[type="submit"],.elementor-wpcf7-button-primary_gradient .show > button.dropdown-toggle[type="submit"],.elementor-wpcf7-button-primary .show > input.dropdown-toggle[type="submit"],.elementor-wpcf7-button-primary .show > button.dropdown-toggle[type="submit"],.mailchimp-button-primary .show > button.dropdown-toggle,[id^='give-user-login-submit'] .show > .dropdown-toggle.give-submit,.give-submit-button-wrap .show > .dropdown-toggle.give-submit,.show > .dropdown-toggle.give-btn.give-default-level,.show > .dropdown-toggle.give-btn:focus,.show > .dropdown-toggle.give-btn:hover,.show > button.dropdown-toggle.give-btn-reveal,.show > button.dropdown-toggle.give-btn-modal,.give-wrap .show > .dropdown-toggle.btn-donate-now,.elementor-element .elementor-button-primary .elementor-button:hover,.elementor-element .elementor-button-primary .elementor-button:active,.elementor-element .elementor-button-primary .elementor-button:focus,.campain-grid-style-1 .give-wrap .give-card__link:hover {background-color:#db8400; }.button-primary:active,input:active[type="reset"],input:active[type="button"],input:active[type="submit"],button:active[type="submit"],.scrollup:active,.elementor-widget-opal-account .site-header-account .account-dropdown .account-inner button:active[type="submit"],.elementor-wpcf7-button-primary_gradient input:active[type="submit"],.elementor-wpcf7-button-primary_gradient button:active[type="submit"],.elementor-wpcf7-button-primary input:active[type="submit"],.elementor-wpcf7-button-primary button:active[type="submit"],.mailchimp-button-primary button:active,[id^='give-user-login-submit'] .give-submit:active,.give-submit-button-wrap .give-submit:active,.give-btn.give-default-level:active,.give-btn:active:focus,button.give-btn-reveal:active,button.give-btn-modal:active,.give-wrap .btn-donate-now:active,.button-primary.active,input.active[type="reset"],input.active[type="button"],input.active[type="submit"],button.active[type="submit"],.active.scrollup,.elementor-widget-opal-account .site-header-account .account-dropdown .account-inner button.active[type="submit"],.elementor-wpcf7-button-primary_gradient input.active[type="submit"],.elementor-wpcf7-button-primary_gradient button.active[type="submit"],.elementor-wpcf7-button-primary input.active[type="submit"],.elementor-wpcf7-button-primary button.active[type="submit"],.mailchimp-button-primary button.active,[id^='give-user-login-submit'] .active.give-submit,.give-submit-button-wrap .active.give-submit,.active.give-btn.give-default-level,.active.give-btn:focus,button.active.give-btn-reveal,button.active.give-btn-modal,.give-wrap .active.btn-donate-now,.show > .button-primary.dropdown-toggle,.show > input.dropdown-toggle[type="reset"],.show > input.dropdown-toggle[type="button"],.show > input.dropdown-toggle[type="submit"],.show > button.dropdown-toggle[type="submit"],.show > .dropdown-toggle.scrollup,.elementor-widget-opal-account .site-header-account .account-dropdown .account-inner .show > button.dropdown-toggle[type="submit"],.elementor-wpcf7-button-primary_gradient .show > input.dropdown-toggle[type="submit"],.elementor-wpcf7-button-primary_gradient .show > button.dropdown-toggle[type="submit"],.elementor-wpcf7-button-primary .show > input.dropdown-toggle[type="submit"],.elementor-wpcf7-button-primary .show > button.dropdown-toggle[type="submit"],.mailchimp-button-primary .show > button.dropdown-toggle,[id^='give-user-login-submit'] .show > .dropdown-toggle.give-submit,.give-submit-button-wrap .show > .dropdown-toggle.give-submit,.show > .dropdown-toggle.give-btn.give-default-level,.show > .dropdown-toggle.give-btn:focus,.show > .dropdown-toggle.give-btn:hover,.show > button.dropdown-toggle.give-btn-reveal,.show > button.dropdown-toggle.give-btn-modal,.give-wrap .show > .dropdown-toggle.btn-donate-now,.button-secondary:active,.secondary-button .search-submit:active,.elementor-wpcf7-button-secondary input:active[type="submit"],.elementor-wpcf7-button-secondary button:active[type="submit"],.mailchimp-button-secondary button:active,.button-secondary.active,.secondary-button .active.search-submit,.elementor-wpcf7-button-secondary input.active[type="submit"],.elementor-wpcf7-button-secondary button.active[type="submit"],.mailchimp-button-secondary button.active,.show > .button-secondary.dropdown-toggle,.secondary-button .show > .dropdown-toggle.search-submit,.elementor-wpcf7-button-secondary .show > input.dropdown-toggle[type="submit"],.elementor-wpcf7-button-secondary .show > button.dropdown-toggle[type="submit"],.mailchimp-button-secondary .show > button.dropdown-toggle,.button-primary:hover,input:hover[type="reset"],input:hover[type="button"],input:hover[type="submit"],button:hover[type="submit"],.scrollup:hover,.elementor-widget-opal-account .site-header-account .account-dropdown .account-inner button:hover[type="submit"],.elementor-wpcf7-button-primary_gradient input:hover[type="submit"],.elementor-wpcf7-button-primary_gradient button:hover[type="submit"],.elementor-wpcf7-button-primary input:hover[type="submit"],.elementor-wpcf7-button-primary button:hover[type="submit"],.mailchimp-button-primary button:hover,[id^='give-user-login-submit'] .give-submit:hover,.give-submit-button-wrap .give-submit:hover,.give-btn:hover,button.give-btn-reveal:hover,button.give-btn-modal:hover,.give-wrap .btn-donate-now:hover,.elementor-element .elementor-button-primary .elementor-button:hover,.elementor-element .elementor-button-primary .elementor-button:active,.elementor-element .elementor-button-primary .elementor-button:focus {border-color:#db8400; }.button-outline-secondary,.elementor-wpcf7-button-outline_secondary input[type="button"][type="submit"],.elementor-wpcf7-button-outline_secondary input[type="submit"],.elementor-wpcf7-button-outline_secondary button[type="submit"],.mailchimp-button-outline_secondary button,.mailchimp-button-outline_secondary button[type="submit"],.elementor-element .elementor-button-outline_secondary .elementor-button,.c-secondary,.author-wrapper .author-name h6,.contactform-content button.mfp-close {color:#0e926b; }.f-secondary {fill:#0e926b; }.page-links a:hover,.page-links .post-page-numbers.current,.button-secondary,.secondary-button .search-submit,.elementor-wpcf7-button-secondary input[type="button"][type="submit"],.elementor-wpcf7-button-secondary input[type="submit"],.elementor-wpcf7-button-secondary button[type="submit"],.mailchimp-button-secondary button,.mailchimp-button-secondary button[type="submit"],.elementor-button-secondary button[type="submit"],.elementor-button-secondary input[type="button"],.elementor-button-secondary input[type="submit"],.elementor-element .elementor-button-secondary .elementor-button,.button-outline-secondary:hover,.elementor-wpcf7-button-outline_secondary input:hover[type="submit"],.elementor-wpcf7-button-outline_secondary button:hover[type="submit"],.mailchimp-button-outline_secondary button:hover,.button-outline-secondary:active,.elementor-wpcf7-button-outline_secondary input:active[type="submit"],.elementor-wpcf7-button-outline_secondary button:active[type="submit"],.mailchimp-button-outline_secondary button:active,.button-outline-secondary.active,.elementor-wpcf7-button-outline_secondary input.active[type="submit"],.elementor-wpcf7-button-outline_secondary button.active[type="submit"],.mailchimp-button-outline_secondary button.active,.show > .button-outline-secondary.dropdown-toggle,.elementor-wpcf7-button-outline_secondary .show > input.dropdown-toggle[type="submit"],.elementor-wpcf7-button-outline_secondary .show > button.dropdown-toggle[type="submit"],.mailchimp-button-outline_secondary .show > button.dropdown-toggle,.elementor-element .elementor-button-outline_secondary .elementor-button:hover,.elementor-element .elementor-button-outline_secondary .elementor-button:active,.elementor-element .elementor-button-outline_secondary .elementor-button:focus,.bg-secondary,#secondary .elementor-widget-wp-widget-categories a:before,.elementor-widget-sidebar .elementor-widget-wp-widget-categories a:before,#give-sidebar-left .elementor-widget-wp-widget-categories a:before,.title-bg-polygon,.elementor-flip-box__back,.opal-image-hotspots-main-icons .opal-image-hotspots-icon.style-2,.elementor-widget-opal-text_carousel.text-carousel-style-2 .owl-theme.owl-carousel .owl-nav [class*='owl-']:before,.elementor-widget-opal-timeline .elementor-content-wrap {background-color:#0e926b; }.page-links a:hover,.page-links .post-page-numbers.current,.button-secondary,.secondary-button .search-submit,.elementor-wpcf7-button-secondary input[type="button"][type="submit"],.elementor-wpcf7-button-secondary input[type="submit"],.elementor-wpcf7-button-secondary button[type="submit"],.mailchimp-button-secondary button,.mailchimp-button-secondary button[type="submit"],.elementor-button-secondary button[type="submit"],.elementor-button-secondary input[type="button"],.elementor-button-secondary input[type="submit"],.elementor-element .elementor-button-secondary .elementor-button,.button-outline-secondary,.elementor-wpcf7-button-outline_secondary input[type="button"][type="submit"],.elementor-wpcf7-button-outline_secondary input[type="submit"],.elementor-wpcf7-button-outline_secondary button[type="submit"],.mailchimp-button-outline_secondary button,.mailchimp-button-outline_secondary button[type="submit"],.elementor-element .elementor-button-outline_secondary .elementor-button,.button-outline-secondary:hover,.elementor-wpcf7-button-outline_secondary input:hover[type="submit"],.elementor-wpcf7-button-outline_secondary button:hover[type="submit"],.button-outline-secondary:active,.elementor-wpcf7-button-outline_secondary input:active[type="submit"],.elementor-wpcf7-button-outline_secondary button:active[type="submit"],.button-outline-secondary.active,.elementor-wpcf7-button-outline_secondary input.active[type="submit"],.elementor-wpcf7-button-outline_secondary button.active[type="submit"],.show > .button-outline-secondary.dropdown-toggle,.elementor-wpcf7-button-outline_secondary .show > input.dropdown-toggle[type="submit"],.elementor-wpcf7-button-outline_secondary .show > button.dropdown-toggle[type="submit"],.mailchimp-button-outline_secondary .show > button.dropdown-toggle,.elementor-element .elementor-button-outline_secondary .elementor-button:hover,.elementor-element .elementor-button-outline_secondary .elementor-button:active,.elementor-element .elementor-button-outline_secondary .elementor-button:focus,.b-secondary {border-color:#0e926b; }.button-secondary:hover,.secondary-button .search-submit:hover,.elementor-wpcf7-button-secondary input:hover[type="submit"],.elementor-wpcf7-button-secondary button:hover[type="submit"],.mailchimp-button-secondary button:hover,.button-secondary:active,.secondary-button .search-submit:active,.elementor-wpcf7-button-secondary input:active[type="submit"],.elementor-wpcf7-button-secondary button:active[type="submit"],.mailchimp-button-secondary button:active,.button-secondary.active,.secondary-button .active.search-submit,.elementor-wpcf7-button-secondary input.active[type="submit"],.elementor-wpcf7-button-secondary button.active[type="submit"],.mailchimp-button-secondary button.active,.show > .button-secondary.dropdown-toggle,.secondary-button .show > .dropdown-toggle.search-submit,.elementor-wpcf7-button-secondary .show > input.dropdown-toggle[type="submit"],.elementor-wpcf7-button-secondary .show > button.dropdown-toggle[type="submit"],.mailchimp-button-secondary .show > button.dropdown-toggle,.elementor-button-secondary button[type="submit"]:hover,.elementor-button-secondary button[type="submit"]:active,.elementor-button-secondary button[type="submit"]:focus,.elementor-button-secondary input[type="button"]:hover,.elementor-button-secondary input[type="button"]:active,.elementor-button-secondary input[type="button"]:focus,.elementor-button-secondary input[type="submit"]:hover,.elementor-button-secondary input[type="submit"]:active,.elementor-button-secondary input[type="submit"]:focus,.elementor-element .elementor-button-secondary .elementor-button:hover,.elementor-element .elementor-button-secondary .elementor-button:active,.elementor-element .elementor-button-secondary .elementor-button:focus {background-color:#096247; }.button-secondary:hover,.secondary-button .search-submit:hover,.elementor-wpcf7-button-secondary input:hover[type="submit"],.elementor-wpcf7-button-secondary button:hover[type="submit"],.mailchimp-button-secondary button:hover,.button-secondary:active,.secondary-button .search-submit:active,.elementor-wpcf7-button-secondary input:active[type="submit"],.elementor-wpcf7-button-secondary button:active[type="submit"],.mailchimp-button-secondary button:active,.button-secondary.active,.secondary-button .active.search-submit,.elementor-wpcf7-button-secondary input.active[type="submit"],.elementor-wpcf7-button-secondary button.active[type="submit"],.mailchimp-button-secondary button.active,.show > .button-secondary.dropdown-toggle,.secondary-button .show > .dropdown-toggle.search-submit,.elementor-wpcf7-button-secondary .show > input.dropdown-toggle[type="submit"],.elementor-wpcf7-button-secondary .show > button.dropdown-toggle[type="submit"],.mailchimp-button-secondary .show > button.dropdown-toggle,.elementor-button-secondary button[type="submit"]:hover,.elementor-button-secondary button[type="submit"]:active,.elementor-button-secondary button[type="submit"]:focus,.elementor-button-secondary input[type="button"]:hover,.elementor-button-secondary input[type="button"]:active,.elementor-button-secondary input[type="button"]:focus,.elementor-button-secondary input[type="submit"]:hover,.elementor-button-secondary input[type="submit"]:active,.elementor-button-secondary input[type="submit"]:focus,.elementor-element .elementor-button-secondary .elementor-button:hover,.elementor-element .elementor-button-secondary .elementor-button:active,.elementor-element .elementor-button-secondary .elementor-button:focus {border-color:#096247; }.row,body.opal-content-layout-2cl #content .wrap,body.opal-content-layout-2cr #content .wrap,[data-opal-columns],.opal-default-content-layout-2cr .site-content .wrap,.site-footer .widget-area,.comment-form,.widget .gallery,.elementor-element .gallery,.entry-gallery .gallery,.single .gallery,.blog .gallery,[data-elementor-columns],.elementor-widget-opal-schedules .schedules-style-2 .elementor-schedules-item,.give-wrap-inner > .give_forms {margin-right:-15px;margin-left:-15px;}.col-1,.col-2,[data-elementor-columns-mobile="6"] .column-item,.col-3,[data-elementor-columns-mobile="4"] .column-item,.col-4,.comment-form .comment-form-author,.comment-form .comment-form-email,.comment-form .comment-form-url,[data-elementor-columns-mobile="3"] .column-item,.col-5,.col-6,[data-elementor-columns-mobile="2"] .column-item,.col-7,.col-8,.col-9,.col-10,.col-11,.col-12,.opal-archive-style-2.opal-content-layout-2cr .post-style-2,.related-posts .column-item,.opal-default-content-layout-2cr .related-posts .column-item,.opal-content-layout-2cr .related-posts .column-item,.opal-content-layout-2cl .related-posts .column-item,.site-footer .widget-area .widget-column,.comment-form .logged-in-as,.comment-form .comment-notes,.comment-form .comment-form-comment,.comment-form .form-submit,.widget .gallery-columns-1 .gallery-item,.elementor-element .gallery-columns-1 .gallery-item,.entry-gallery .gallery-columns-1 .gallery-item,.single .gallery-columns-1 .gallery-item,.blog .gallery-columns-1 .gallery-item,[data-elementor-columns-mobile="1"] .column-item,.give-wrap-inner .entry-summary,.col,body #secondary,body .elementor-widget-sidebar,body #give-sidebar-left,body.opal-content-layout-2cl #primary,body.opal-content-layout-2cr #primary,.elementor-widget-opal-schedules .schedules-style-2 .elementor-schedules-inner-day,.elementor-widget-opal-schedules .schedules-style-2 .elementor-schedules-inner-item,.col-auto,.col-sm-1,[data-opal-columns="12"] .column-item,.col-sm-2,[data-opal-columns="6"] .column-item,.col-sm-3,[data-opal-columns="4"] .column-item,.col-sm-4,[data-opal-columns="3"] .column-item,.widget .gallery-columns-6 .gallery-item,.elementor-element .gallery-columns-6 .gallery-item,.entry-gallery .gallery-columns-6 .gallery-item,.single .gallery-columns-6 .gallery-item,.blog .gallery-columns-6 .gallery-item,.col-sm-5,.col-sm-6,[data-opal-columns="2"] .column-item,.opal-archive-style-3:not(.opal-content-layout-2cr) .post-style-3,.widget .gallery-columns-2 .gallery-item,.elementor-element .gallery-columns-2 .gallery-item,.entry-gallery .gallery-columns-2 .gallery-item,.single .gallery-columns-2 .gallery-item,.blog .gallery-columns-2 .gallery-item,.widget .gallery-columns-3 .gallery-item,.elementor-element .gallery-columns-3 .gallery-item,.entry-gallery .gallery-columns-3 .gallery-item,.single .gallery-columns-3 .gallery-item,.blog .gallery-columns-3 .gallery-item,.widget .gallery-columns-4 .gallery-item,.elementor-element .gallery-columns-4 .gallery-item,.entry-gallery .gallery-columns-4 .gallery-item,.single .gallery-columns-4 .gallery-item,.blog .gallery-columns-4 .gallery-item,.col-sm-7,.col-sm-8,.col-sm-9,.col-sm-10,.col-sm-11,.col-sm-12,[data-opal-columns="1"] .column-item,.opal-archive-style-2:not(.opal-content-layout-2cr) .post-style-2,.opal-archive-style-3.opal-content-layout-2cr .post-style-3,.col-sm,.col-sm-auto,.col-md-1,.col-md-2,[data-elementor-columns-tablet="6"] .column-item,.col-md-3,[data-elementor-columns-tablet="4"] .column-item,.col-md-4,[data-elementor-columns-tablet="3"] .column-item,.col-md-5,.opal-default-content-layout-2cr #secondary,.opal-default-content-layout-2cr .elementor-widget-sidebar,.opal-default-content-layout-2cr #give-sidebar-left,.col-md-6,[data-elementor-columns-tablet="2"] .column-item,.col-md-7,.opal-default-content-layout-2cr #primary,.col-md-8,.col-md-9,.col-md-10,#give_profile_editor_form fieldset,.col-md-11,.col-md-12,[data-elementor-columns-tablet="1"] .column-item,.elementor-campaign-feature-wrapper .campaign-media,.elementor-widget-opal-image-hotspots .opal-image-hotspots-accordion,.elementor-widget-opal-image-hotspots .opal-image-hotspots-accordion + .opal-image-hotspots-container,.col-md,.col-md-auto,.col-lg-1,.col-lg-2,[data-elementor-columns="6"] .column-item,.col-lg-3,[data-elementor-columns="4"] .column-item,.col-lg-4,[data-elementor-columns="3"] .column-item,.col-lg-5,.col-lg-6,[data-elementor-columns="2"] .column-item,.col-lg-7,.col-lg-8,.col-lg-9,.col-lg-10,.col-lg-11,.col-lg-12,[data-elementor-columns="1"] .column-item,.col-lg,.col-lg-auto,.col-xl-1,.col-xl-2,.col-xl-3,.col-xl-4,.col-xl-5,.col-xl-6,.col-xl-7,.col-xl-8,.col-xl-9,.col-xl-10,.col-xl-11,.col-xl-12,.col-xl,.col-xl-auto {padding-right:15px;padding-left:15px;}.container,#content,ul.elementor-nav-menu--dropdown.mega-containerwidth > li.mega-menu-item > .elementor {padding-right:15px;padding-left:15px;}@media (min-width:576px) {.container, #content, ul.elementor-nav-menu--dropdown.mega-containerwidth > li.mega-menu-item > .elementor {max-width:540px; } }@media (min-width:768px) {.container, #content, ul.elementor-nav-menu--dropdown.mega-containerwidth > li.mega-menu-item > .elementor {max-width:767px; } }@media (min-width:992px) {.container, #content, ul.elementor-nav-menu--dropdown.mega-containerwidth > li.mega-menu-item > .elementor {max-width:960px; } }@media (min-width:1200px) {.container, #content, ul.elementor-nav-menu--dropdown.mega-containerwidth > li.mega-menu-item > .elementor {max-width:1170px; } }.elementor-widget-heading .elementor-heading-title,.elementor-text-editor b{font-weight:400;}.elementor-widget-heading .elementor-heading-title,.elementor-text-editor b{font-weight:400;}.typo-heading,h1,h2,h3,h4,h5,h6,.site-title,.author-wrapper .author-name,.error404 h1,.error404 .error-404-subtitle,h2.widget-title,h3.widgettitle,h2.widgettitle,.profile-wrapper .login-form-title,.widget_recent_entries li.item-recent-post a,#secondary .elementor-widget-container h5:first-of-type,.elementor-widget-sidebar .elementor-widget-container h5:first-of-type,#give-sidebar-left .elementor-widget-container h5:first-of-type,.contactform-content .form-title,.elementor-cta__status-text,.elementor-widget-opal-countdown .elementor-countdown-digits,.elementor-widget-opal-countdown .elementor-countdown-label,.elementor-widget-opal-featured-box .elementor-featured-box-name,.elementor-give-category-title,.elementor-campaign-feature-wrapper .owl-theme.owl-carousel .owl-dots .owl-dot,.elementor-widget-opal-give-form .give-display-modal form[id*='give-form'] .give-donation-amount #give-amount,.elementor-widget-opal-give-form .give-display-modal form[id*='give-form'] .give-donation-amount #give-text-input,.elementor-widget-opal-give-form .give-display-modal form[id*='give-form'] .give-donation-amount #give-amount-text,.elementor-widget-opal-give-form .give-display-onpage form[id*='give-form'] .give-donation-amount #give-amount,.elementor-widget-opal-give-form .give-display-onpage form[id*='give-form'] .give-donation-amount #give-text-input,.elementor-widget-opal-give-form .give-display-onpage form[id*='give-form'] .give-donation-amount #give-amount-text,.elementor-widget-heading .elementor-heading-title,.tooltipster-sidetip div.opal-image-hotspots-tooltips-text,.elementor-widget-opal-phone .elementor-phone-title,.elementor-widget-opal-phone .elementor-phone-subtitle,.elementor-price-table__price span,.elementor-price-table__period,.elementor-widget-opal-schedules .schedules-day-name,.elementor-widget-opal-schedules .schedules-day-time,.elementor-widget-opal-schedules .title-schedules,.elementor-teams-wrapper .elementor-team-name,.elementor-widget-opal-timeline .timeline-pagination li,.elementor-video-title,[id*='give-form'] div#give-sidebar-left .give-goal-progress .time-left .value,form[id*='give-form'] h3.give-section-break,form[id*='give-form'] h4.give-section-break,form[id*='give-form'] legend,#give-recurring-form h3.give-section-break,#give-recurring-form h4.give-section-break,#give-recurring-form legend,form.give-form h3.give-section-break,form.give-form h4.give-section-break,form.give-form legend,form[id*='give-form'] .give-donation-amount .give-currency-symbol,form[id*='give-form'] .give-donation-amount #give-amount,form[id*='give-form'] .give-donation-amount #give-amount-text,form[id*='give-form'] #give-final-total-wrap .give-donation-total-label,form[id*='give-form'] #give-final-total-wrap .give-final-total-amount,#give_profile_editor_form legend,.give-donor__image,.give-goal-progress .goal,.give-goal-progress .income,.give-goal-progress .donors,.give-goal-progress .time-left,.give-goal-progress .percentage,.give-wrap .give-card__category,.give-wrap div [class*='media'] > .label,.give-wrap .give-form-tabs .ui-tabs-nav li,.give-wrap .barometer span span,.give-wrap .sidebar-creator .author-name,.give-wrap .sidebar-creator .campaigns-count {font-weight:400;}@media screen and (min-width:1200px){.container, #content ,.single-product .related.products, .single-product .up-sells.products{max-width:1350px;}}@media screen and (min-width:768px){.container, #content , .container-fluid{padding-left:30px;padding-right:30px;}}.page-title-bar {background-color:#1a160e;background-image:url(http://localhost/wordpress/gainlove/wp-content/uploads/2020/12/bg-breadcrumb.jpg);background-repeat:no-repeat;background-position:center center;;}.page-title-bar .wrap .page-title{color:#fff; }.breadcrumb span, .breadcrumb * {color:#fff;;}.breadcrumb a:hover,.breadcrumb a:hover span{color:#e74a30;}.button-primary,input[type="reset"],input.secondary[type="button"],input.secondary[type="reset"],input.secondary[type="submit"],input[type="button"],input[type="submit"],button[type="submit"],.scrollup,.elementor-widget-opal-account .site-header-account .account-dropdown .account-inner button[type="submit"],.elementor-wpcf7-button-primary_gradient input[type="button"][type="submit"],.elementor-wpcf7-button-primary_gradient input[type="submit"],.elementor-wpcf7-button-primary_gradient button[type="submit"],.elementor-wpcf7-button-primary input[type="button"][type="submit"],.elementor-wpcf7-button-primary input[type="submit"],.elementor-wpcf7-button-primary button[type="submit"],.elementor-widget-opal-give-form .give-submit-button-wrap .give-submit,.mailchimp-button-primary button,.mailchimp-button-primary button[type="submit"],[id^='give-user-login-submit'] .give-submit,.give-submit-button-wrap .give-submit,.give-btn.give-default-level,.give-btn:focus,.give-btn:hover,button.give-btn-reveal,button.give-btn-modal,.give-wrap .btn-donate-now,.button-outline-dark:hover,.elementor-element .elementor-button-outline_dark .elementor-button:hover,.button-outline-dark:active,.elementor-element .elementor-button-outline_dark .elementor-button:active,.button-outline-dark:focus,.elementor-element .elementor-button-outline_dark .elementor-button:focus,.button-dark:hover,.more-link:hover,.elementor-element .elementor-button-dark .elementor-button:hover,.mailchimp-button-dark button:hover,.button-dark:active,.more-link:active,.elementor-element .elementor-button-dark .elementor-button:active,.mailchimp-button-dark button:active,.button-dark:focus,.more-link:focus,.elementor-element .elementor-button-dark .elementor-button:focus,.mailchimp-button-dark button:focus,.button-light:hover,.elementor-element .elementor-button-light .elementor-button:hover,.mailchimp-button-light button:hover,.sidebar-donor-wall .give-donor__load_more:hover,.button-light:active,.elementor-element .elementor-button-light .elementor-button:active,.mailchimp-button-light button:active,.give-btn:active,.sidebar-donor-wall .give-donor__load_more:active,.button-light:focus,.elementor-element .elementor-button-light .elementor-button:focus,.mailchimp-button-light button:focus,.sidebar-donor-wall .give-donor__load_more:focus,.wp-block-button__link:hover,.elementor-element .elementor-button-primary .elementor-button {background-color:#ff9f0d;border-color:#ff9f0d;color:#fff;font-family:"Barlow",-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;font-weight:600;}.button-primary:hover,input:hover[type="reset"],input:hover[type="button"],input:hover[type="submit"],button:hover[type="submit"],.scrollup:hover,.elementor-widget-opal-account .site-header-account .account-dropdown .account-inner button:hover[type="submit"],.elementor-wpcf7-button-primary_gradient input:hover[type="submit"],.elementor-wpcf7-button-primary_gradient button:hover[type="submit"],.elementor-wpcf7-button-primary input:hover[type="submit"],.elementor-wpcf7-button-primary button:hover[type="submit"],.mailchimp-button-primary button:hover,[id^='give-user-login-submit'] .give-submit:hover,.give-submit-button-wrap .give-submit:hover,.give-btn:hover,button.give-btn-reveal:hover,button.give-btn-modal:hover,.give-wrap .btn-donate-now:hover,.button-primary:active,input:active[type="reset"],input:active[type="button"],input:active[type="submit"],button:active[type="submit"],.scrollup:active,.elementor-widget-opal-account .site-header-account .account-dropdown .account-inner button:active[type="submit"],.elementor-wpcf7-button-primary_gradient input:active[type="submit"],.elementor-wpcf7-button-primary_gradient button:active[type="submit"],.elementor-wpcf7-button-primary input:active[type="submit"],.elementor-wpcf7-button-primary button:active[type="submit"],.mailchimp-button-primary button:active,[id^='give-user-login-submit'] .give-submit:active,.give-submit-button-wrap .give-submit:active,.give-btn.give-default-level:active,.give-btn:active:focus,button.give-btn-reveal:active,button.give-btn-modal:active,.give-wrap .btn-donate-now:active,.button-primary.active,input.active[type="reset"],input.active[type="button"],input.active[type="submit"],button.active[type="submit"],.active.scrollup,.elementor-widget-opal-account .site-header-account .account-dropdown .account-inner button.active[type="submit"],.elementor-wpcf7-button-primary_gradient input.active[type="submit"],.elementor-wpcf7-button-primary_gradient button.active[type="submit"],.elementor-wpcf7-button-primary input.active[type="submit"],.elementor-wpcf7-button-primary button.active[type="submit"],.mailchimp-button-primary button.active,[id^='give-user-login-submit'] .active.give-submit,.give-submit-button-wrap .active.give-submit,.active.give-btn.give-default-level,.active.give-btn:focus,button.active.give-btn-reveal,button.active.give-btn-modal,.give-wrap .active.btn-donate-now,.show > .button-primary.dropdown-toggle,.show > input.dropdown-toggle[type="reset"],.show > input.dropdown-toggle[type="button"],.show > input.dropdown-toggle[type="submit"],.show > button.dropdown-toggle[type="submit"],.show > .dropdown-toggle.scrollup,.elementor-widget-opal-account .site-header-account .account-dropdown .account-inner .show > button.dropdown-toggle[type="submit"],.elementor-wpcf7-button-primary_gradient .show > input.dropdown-toggle[type="submit"],.elementor-wpcf7-button-primary_gradient .show > button.dropdown-toggle[type="submit"],.elementor-wpcf7-button-primary .show > input.dropdown-toggle[type="submit"],.elementor-wpcf7-button-primary .show > button.dropdown-toggle[type="submit"],.mailchimp-button-primary .show > button.dropdown-toggle,[id^='give-user-login-submit'] .show > .dropdown-toggle.give-submit,.give-submit-button-wrap .show > .dropdown-toggle.give-submit,.show > .dropdown-toggle.give-btn.give-default-level,.show > .dropdown-toggle.give-btn:focus,.show > .dropdown-toggle.give-btn:hover,.show > button.dropdown-toggle.give-btn-reveal,.show > button.dropdown-toggle.give-btn-modal,.give-wrap .show > .dropdown-toggle.btn-donate-now,.elementor-element .elementor-button-primary .elementor-button:hover,.elementor-element .elementor-button-primary .elementor-button:active,.elementor-element .elementor-button-primary .elementor-button:focus {background-color:#db8400;border-color:#db8400;color:#fff;font-family:"Barlow",-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;font-weight:600;}.button-outline-primary:hover,.elementor-wpcf7-button-outline_primary input:hover[type="button"],.elementor-wpcf7-button-outline_primary input:hover[type="submit"],.elementor-wpcf7-button-outline_primary button:hover[type="submit"],.mailchimp-button-outline_primary button:hover,.button-outline-primary:active,.elementor-wpcf7-button-outline_primary input:active[type="button"],.elementor-wpcf7-button-outline_primary input:active[type="submit"],.elementor-wpcf7-button-outline_primary button:active[type="submit"],.mailchimp-button-outline_primary button:active,.button-outline-primary.active,.elementor-wpcf7-button-outline_primary input.active[type="button"],.elementor-wpcf7-button-outline_primary input.active[type="submit"],.elementor-wpcf7-button-outline_primary button.active[type="submit"],.mailchimp-button-outline_primary button.active,.show > .button-outline-primary.dropdown-toggle,.elementor-wpcf7-button-outline_primary .show > input.dropdown-toggle[type="button"],.elementor-wpcf7-button-outline_primary .show > input.dropdown-toggle[type="submit"],.elementor-wpcf7-button-outline_primary .show > button.dropdown-toggle[type="submit"],.mailchimp-button-outline_primary .show > button.dropdown-toggle,.elementor-element .elementor-button-outline_primary .elementor-button:hover,.elementor-element .elementor-button-outline_primary .elementor-button:active,.elementor-element .elementor-button-outline_primary .elementor-button:focus {font-family:"Barlow",-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;font-weight:600;}.button-primary,input[type="reset"],input.secondary[type="button"],input.secondary[type="reset"],input.secondary[type="submit"],input[type="button"],input[type="submit"],button[type="submit"],.scrollup,.elementor-widget-opal-account .site-header-account .account-dropdown .account-inner button[type="submit"],.elementor-wpcf7-button-primary_gradient input[type="button"][type="submit"],.elementor-wpcf7-button-primary_gradient input[type="submit"],.elementor-wpcf7-button-primary_gradient button[type="submit"],.elementor-wpcf7-button-primary input[type="button"][type="submit"],.elementor-wpcf7-button-primary input[type="submit"],.elementor-wpcf7-button-primary button[type="submit"],.elementor-widget-opal-give-form .give-submit-button-wrap .give-submit,.mailchimp-button-primary button,.mailchimp-button-primary button[type="submit"],[id^='give-user-login-submit'] .give-submit,.give-submit-button-wrap .give-submit,.give-btn.give-default-level,.give-btn:focus,.give-btn:hover,button.give-btn-reveal,button.give-btn-modal,.give-wrap .btn-donate-now,.button-outline-dark:hover,.elementor-element .elementor-button-outline_dark .elementor-button:hover,.button-outline-dark:active,.elementor-element .elementor-button-outline_dark .elementor-button:active,.button-outline-dark:focus,.elementor-element .elementor-button-outline_dark .elementor-button:focus,.button-dark:hover,.more-link:hover,.elementor-element .elementor-button-dark .elementor-button:hover,.mailchimp-button-dark button:hover,.button-dark:active,.more-link:active,.elementor-element .elementor-button-dark .elementor-button:active,.mailchimp-button-dark button:active,.button-dark:focus,.more-link:focus,.elementor-element .elementor-button-dark .elementor-button:focus,.mailchimp-button-dark button:focus,.button-light:hover,.elementor-element .elementor-button-light .elementor-button:hover,.mailchimp-button-light button:hover,.sidebar-donor-wall .give-donor__load_more:hover,.button-light:active,.elementor-element .elementor-button-light .elementor-button:active,.mailchimp-button-light button:active,.give-btn:active,.sidebar-donor-wall .give-donor__load_more:active,.button-light:focus,.elementor-element .elementor-button-light .elementor-button:focus,.mailchimp-button-light button:focus,.sidebar-donor-wall .give-donor__load_more:focus,.wp-block-button__link:hover,.elementor-element .elementor-button-primary .elementor-button {background-color:#ff9f0d;border-color:#ff9f0d;color:#fff;font-family:"Barlow",-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;font-weight:600;}.button-primary:hover,input:hover[type="reset"],input:hover[type="button"],input:hover[type="submit"],button:hover[type="submit"],.scrollup:hover,.elementor-widget-opal-account .site-header-account .account-dropdown .account-inner button:hover[type="submit"],.elementor-wpcf7-button-primary_gradient input:hover[type="submit"],.elementor-wpcf7-button-primary_gradient button:hover[type="submit"],.elementor-wpcf7-button-primary input:hover[type="submit"],.elementor-wpcf7-button-primary button:hover[type="submit"],.mailchimp-button-primary button:hover,[id^='give-user-login-submit'] .give-submit:hover,.give-submit-button-wrap .give-submit:hover,.give-btn:hover,button.give-btn-reveal:hover,button.give-btn-modal:hover,.give-wrap .btn-donate-now:hover,.button-primary:active,input:active[type="reset"],input:active[type="button"],input:active[type="submit"],button:active[type="submit"],.scrollup:active,.elementor-widget-opal-account .site-header-account .account-dropdown .account-inner button:active[type="submit"],.elementor-wpcf7-button-primary_gradient input:active[type="submit"],.elementor-wpcf7-button-primary_gradient button:active[type="submit"],.elementor-wpcf7-button-primary input:active[type="submit"],.elementor-wpcf7-button-primary button:active[type="submit"],.mailchimp-button-primary button:active,[id^='give-user-login-submit'] .give-submit:active,.give-submit-button-wrap .give-submit:active,.give-btn.give-default-level:active,.give-btn:active:focus,button.give-btn-reveal:active,button.give-btn-modal:active,.give-wrap .btn-donate-now:active,.button-primary.active,input.active[type="reset"],input.active[type="button"],input.active[type="submit"],button.active[type="submit"],.active.scrollup,.elementor-widget-opal-account .site-header-account .account-dropdown .account-inner button.active[type="submit"],.elementor-wpcf7-button-primary_gradient input.active[type="submit"],.elementor-wpcf7-button-primary_gradient button.active[type="submit"],.elementor-wpcf7-button-primary input.active[type="submit"],.elementor-wpcf7-button-primary button.active[type="submit"],.mailchimp-button-primary button.active,[id^='give-user-login-submit'] .active.give-submit,.give-submit-button-wrap .active.give-submit,.active.give-btn.give-default-level,.active.give-btn:focus,button.active.give-btn-reveal,button.active.give-btn-modal,.give-wrap .active.btn-donate-now,.show > .button-primary.dropdown-toggle,.show > input.dropdown-toggle[type="reset"],.show > input.dropdown-toggle[type="button"],.show > input.dropdown-toggle[type="submit"],.show > button.dropdown-toggle[type="submit"],.show > .dropdown-toggle.scrollup,.elementor-widget-opal-account .site-header-account .account-dropdown .account-inner .show > button.dropdown-toggle[type="submit"],.elementor-wpcf7-button-primary_gradient .show > input.dropdown-toggle[type="submit"],.elementor-wpcf7-button-primary_gradient .show > button.dropdown-toggle[type="submit"],.elementor-wpcf7-button-primary .show > input.dropdown-toggle[type="submit"],.elementor-wpcf7-button-primary .show > button.dropdown-toggle[type="submit"],.mailchimp-button-primary .show > button.dropdown-toggle,[id^='give-user-login-submit'] .show > .dropdown-toggle.give-submit,.give-submit-button-wrap .show > .dropdown-toggle.give-submit,.show > .dropdown-toggle.give-btn.give-default-level,.show > .dropdown-toggle.give-btn:focus,.show > .dropdown-toggle.give-btn:hover,.show > button.dropdown-toggle.give-btn-reveal,.show > button.dropdown-toggle.give-btn-modal,.give-wrap .show > .dropdown-toggle.btn-donate-now,.elementor-element .elementor-button-primary .elementor-button:hover,.elementor-element .elementor-button-primary .elementor-button:active,.elementor-element .elementor-button-primary .elementor-button:focus {background-color:#db8400;border-color:#db8400;color:#fff;font-family:"Barlow",-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;font-weight:600;}.button-outline-primary:hover,.elementor-wpcf7-button-outline_primary input:hover[type="button"],.elementor-wpcf7-button-outline_primary input:hover[type="submit"],.elementor-wpcf7-button-outline_primary button:hover[type="submit"],.mailchimp-button-outline_primary button:hover,.button-outline-primary:active,.elementor-wpcf7-button-outline_primary input:active[type="button"],.elementor-wpcf7-button-outline_primary input:active[type="submit"],.elementor-wpcf7-button-outline_primary button:active[type="submit"],.mailchimp-button-outline_primary button:active,.button-outline-primary.active,.elementor-wpcf7-button-outline_primary input.active[type="button"],.elementor-wpcf7-button-outline_primary input.active[type="submit"],.elementor-wpcf7-button-outline_primary button.active[type="submit"],.mailchimp-button-outline_primary button.active,.show > .button-outline-primary.dropdown-toggle,.elementor-wpcf7-button-outline_primary .show > input.dropdown-toggle[type="button"],.elementor-wpcf7-button-outline_primary .show > input.dropdown-toggle[type="submit"],.elementor-wpcf7-button-outline_primary .show > button.dropdown-toggle[type="submit"],.mailchimp-button-outline_primary .show > button.dropdown-toggle,.elementor-element .elementor-button-outline_primary .elementor-button:hover,.elementor-element .elementor-button-outline_primary .elementor-button:active,.elementor-element .elementor-button-outline_primary .elementor-button:focus {font-family:"Barlow",-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;font-weight:600;}.button-secondary,.secondary-button .search-submit,.elementor-wpcf7-button-secondary input[type="button"][type="submit"],.elementor-wpcf7-button-secondary input[type="submit"],.elementor-wpcf7-button-secondary button[type="submit"],.mailchimp-button-secondary button,.mailchimp-button-secondary button[type="submit"],.elementor-button-secondary button[type="submit"],.elementor-button-secondary input[type="button"],.elementor-button-secondary input[type="submit"],.elementor-element .elementor-button-secondary .elementor-button {background-color:#0e926b;border-color:#0e926b;color:#fff;font-family:"Barlow",-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;font-weight:600;}.button-secondary:hover,.secondary-button .search-submit:hover,.elementor-wpcf7-button-secondary input:hover[type="submit"],.elementor-wpcf7-button-secondary button:hover[type="submit"],.mailchimp-button-secondary button:hover,.button-secondary:active,.secondary-button .search-submit:active,.elementor-wpcf7-button-secondary input:active[type="submit"],.elementor-wpcf7-button-secondary button:active[type="submit"],.mailchimp-button-secondary button:active,.button-secondary.active,.secondary-button .active.search-submit,.elementor-wpcf7-button-secondary input.active[type="submit"],.elementor-wpcf7-button-secondary button.active[type="submit"],.mailchimp-button-secondary button.active,.show > .button-secondary.dropdown-toggle,.secondary-button .show > .dropdown-toggle.search-submit,.elementor-wpcf7-button-secondary .show > input.dropdown-toggle[type="submit"],.elementor-wpcf7-button-secondary .show > button.dropdown-toggle[type="submit"],.mailchimp-button-secondary .show > button.dropdown-toggle,.elementor-button-secondary button[type="submit"]:hover,.elementor-button-secondary button[type="submit"]:active,.elementor-button-secondary button[type="submit"]:focus,.elementor-button-secondary input[type="button"]:hover,.elementor-button-secondary input[type="button"]:active,.elementor-button-secondary input[type="button"]:focus,.elementor-button-secondary input[type="submit"]:hover,.elementor-button-secondary input[type="submit"]:active,.elementor-button-secondary input[type="submit"]:focus,.elementor-element .elementor-button-secondary .elementor-button:hover,.elementor-element .elementor-button-secondary .elementor-button:active,.elementor-element .elementor-button-secondary .elementor-button:focus {background-color:#096247;border-color:#096247;color:#fff;font-family:"Barlow",-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;font-weight:600;}.button-outline-secondary:hover,.elementor-wpcf7-button-outline_secondary input:hover[type="submit"],.elementor-wpcf7-button-outline_secondary button:hover[type="submit"],.mailchimp-button-outline_secondary button:hover,.button-outline-secondary:active,.elementor-wpcf7-button-outline_secondary input:active[type="submit"],.elementor-wpcf7-button-outline_secondary button:active[type="submit"],.mailchimp-button-outline_secondary button:active,.button-outline-secondary.active,.elementor-wpcf7-button-outline_secondary input.active[type="submit"],.elementor-wpcf7-button-outline_secondary button.active[type="submit"],.mailchimp-button-outline_secondary button.active,.show > .button-outline-secondary.dropdown-toggle,.elementor-wpcf7-button-outline_secondary .show > input.dropdown-toggle[type="submit"],.elementor-wpcf7-button-outline_secondary .show > button.dropdown-toggle[type="submit"],.mailchimp-button-outline_secondary .show > button.dropdown-toggle,.elementor-element .elementor-button-outline_secondary .elementor-button:hover,.elementor-element .elementor-button-outline_secondary .elementor-button:active,.elementor-element .elementor-button-outline_secondary .elementor-button:focus {font-family:"Barlow",-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;font-weight:600;}button ,input[type="submit"], input[type="reset"], input[type="button"], .button, .btn {font-family:"Barlow",-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;font-weight:600;}
+@media(max-width: 991px){.opal-header-absolute .site-header{background:#f7f8f9;}}
+</style>
+<link rel="stylesheet" id="elementor-post-6-css" href="./NNNGO – Nigeria Network of NGOs_files/post-6.css" media="all">
+<link rel="stylesheet" id="widget-spacer-css" href="./NNNGO – Nigeria Network of NGOs_files/widget-spacer.min.css" media="all">
+<link rel="stylesheet" id="elementor-post-10454-css" href="./NNNGO – Nigeria Network of NGOs_files/post-10454.css" media="all">
+<link rel="stylesheet" id="otf-fonts-css" href="./NNNGO – Nigeria Network of NGOs_files/css" media="all">
+<link rel="stylesheet" id="fullpage-css" href="./NNNGO – Nigeria Network of NGOs_files/fullpage.css" media="all">
+<link rel="stylesheet" id="google-fonts-1-css" href="./NNNGO – Nigeria Network of NGOs_files/css(1)" media="all">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin=""><script src="./NNNGO – Nigeria Network of NGOs_files/jquery.js.download" id="jquery-core-js"></script>
+<script src="./NNNGO – Nigeria Network of NGOs_files/jquery-migrate.js.download" id="jquery-migrate-js"></script>
+<script src="./NNNGO – Nigeria Network of NGOs_files/owl.carousel.js.download" id="owl-carousel-js"></script>
+<script src="./NNNGO – Nigeria Network of NGOs_files/modernizr.custom.js.download" id="modernizr-js"></script>
+<script src="./NNNGO – Nigeria Network of NGOs_files/carousel.js.download" id="otf-carousel-js"></script>
+<link rel="https://api.w.org/" href="https://nnngo.org/wp-json/"><link rel="alternate" title="JSON" type="application/json" href="https://nnngo.org/wp-json/wp/v2/pages/10454"><link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://nnngo.org/xmlrpc.php?rsd">
+<meta name="generator" content="WordPress 6.7.2">
+<link rel="canonical" href="https://nnngo.org/">
+<link rel="shortlink" href="https://nnngo.org/">
+<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="https://nnngo.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fnnngo.org%2F">
+<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="https://nnngo.org/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fnnngo.org%2F&amp;format=xml">
+<style id="pmpro_colors">:root {
+	--pmpro--color--base: #ffffff;
+	--pmpro--color--contrast: #222222;
+	--pmpro--color--accent: #0c3d54;
+	--pmpro--color--accent--variation: hsl( 199,75%,28.5% );
+	--pmpro--color--border--variation: hsl( 0,0%,91% );
+}</style><meta name="generator" content="Elementor 3.27.6; features: e_font_icon_svg, additional_custom_breakpoints; settings: css_print_method-external, google_font-enabled, font_display-swap">
+			<style>
+				.e-con.e-parent:nth-of-type(n+4):not(.e-lazyloaded):not(.e-no-lazyload),
+				.e-con.e-parent:nth-of-type(n+4):not(.e-lazyloaded):not(.e-no-lazyload) * {
+					background-image: none !important;
+				}
+				@media screen and (max-height: 1024px) {
+					.e-con.e-parent:nth-of-type(n+3):not(.e-lazyloaded):not(.e-no-lazyload),
+					.e-con.e-parent:nth-of-type(n+3):not(.e-lazyloaded):not(.e-no-lazyload) * {
+						background-image: none !important;
+					}
+				}
+				@media screen and (max-height: 640px) {
+					.e-con.e-parent:nth-of-type(n+2):not(.e-lazyloaded):not(.e-no-lazyload),
+					.e-con.e-parent:nth-of-type(n+2):not(.e-lazyloaded):not(.e-no-lazyload) * {
+						background-image: none !important;
+					}
+				}
+			</style>
+			<style id="custom-background-css">
+body.custom-background { background-color: #f7f8f9; }
+</style>
+	<link rel="icon" href="https://nnngo.org/wp-content/uploads/2019/08/cropped-Draftlogo1-2-32x32.jpg" sizes="32x32">
+<link rel="icon" href="https://nnngo.org/wp-content/uploads/2019/08/cropped-Draftlogo1-2-192x192.jpg" sizes="192x192">
+<link rel="apple-touch-icon" href="https://nnngo.org/wp-content/uploads/2019/08/cropped-Draftlogo1-2-180x180.jpg">
+<meta name="msapplication-TileImage" content="https://nnngo.org/wp-content/uploads/2019/08/cropped-Draftlogo1-2-270x270.jpg">
+<style type="text/css">#mc_embed_signup input.mce_inline_error { border-color:#6B0505; } #mc_embed_signup div.mce_inline_error { margin: 0 0 1em 0; padding: 5px 10px; background-color:#6B0505; font-weight: bold; z-index: 1; color:#fff; }</style><script src="./NNNGO – Nigeria Network of NGOs_files/twemoji.js.download" defer=""></script><script src="./NNNGO – Nigeria Network of NGOs_files/wp-emoji.js.download" defer=""></script></head>
+<body class="pmpro-variation_1 home page-template-default page page-id-10454 custom-background wp-custom-logo pmpro-body-has-access opal-style chrome platform-windows opal-fullpage opal-layout-wide opal-page-title-left-right opal-footer-skin-light group-blog gainlove-front-page opal-header-absolute elementor-default elementor-kit-6 elementor-page elementor-page-10454 e--ua-blink e--ua-chrome e--ua-webkit" data-elementor-device-mode="desktop" style="zoom: 1;">
+<div id="wptime-plugin-preloader"></div>
+<div class="opal-wrapper">
+    <nav id="menu-26de578" class="elementor-nav-menu--canvas mp-menu mp-cover"><div class="mp-level" data-level="1"><a class="mp-back mp-close text-right" href="https://nnngo.org/#"><i class="fa fa-close"></i></a><ul id="menu-canvas-2-26de578" class="nav-menu--canvas"><li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-home current-menu-item page_item page-item-10454 current_page_item menu-item-10684"><a href="https://nnngo.org/" aria-current="page">Home</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-4957"><a href="https://nnngo.org/who-we-are/">Who We Are<i class="fa fa-chevron-right trigger"></i></a>
+<div class="mp-level" data-level="2"><a class="mp-back text-center" href="https://nnngo.org/#"><i class="fa fa-arrow-left"></i></a><ul class="sub-menu">
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-13977"><a href="https://nnngo.org/our-history/">Our History</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4956"><a href="https://nnngo.org/governance/">Governance</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-14001"><a href="https://nnngo.org/networks/">Networks</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-14014"><a href="https://nnngo.org/programmes/">Programmes</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-14121"><a href="https://nnngo.org/management-team/">Management Team</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-13801"><a href="https://nnngo.org/funders-and-financials/">Funders &amp; Financials</a></li>
+</ul></div>
+</li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-14150"><a href="https://nnngo.org/how-we-help/">How We Help<i class="fa fa-chevron-right trigger"></i></a>
+<div class="mp-level" data-level="2"><a class="mp-back text-center" href="https://nnngo.org/#"><i class="fa fa-arrow-left"></i></a><ul class="sub-menu">
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10424"><a href="https://nnngo.org/ngos-directory-3/">NGO Directory</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10421"><a href="https://nnngo.org/ngos-directory-by-thematic/">NGO Directory by Thematic Areas</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10422"><a href="https://nnngo.org/ngos-directory-by-state/">NGO Directory by State</a></li>
+</ul></div>
+</li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-4953"><a href="https://nnngo.org/members/">Membership<i class="fa fa-chevron-right trigger"></i></a>
+<div class="mp-level" data-level="2"><a class="mp-back text-center" href="https://nnngo.org/#"><i class="fa fa-arrow-left"></i></a><ul class="sub-menu">
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10620"><a href="https://nnngo.org/join-now/">Join Now</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10437"><a href="https://nnngo.org/membership-2/">Membership</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10438"><a href="https://nnngo.org/membership-benefits/">Membership Benefits</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10439"><a href="https://nnngo.org/membership-category/">Membership Categories</a></li>
+</ul></div>
+</li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-10685"><a href="https://nnngo.org/resources/">RESOURCES<i class="fa fa-chevron-right trigger"></i></a>
+<div class="mp-level" data-level="2"><a class="mp-back text-center" href="https://nnngo.org/#"><i class="fa fa-arrow-left"></i></a><ul class="sub-menu">
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10436"><a href="https://nnngo.org/general-articles/">General Articles</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11590"><a href="https://nnngo.org/civil-society-advisories/">Civil Society Advisories</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11588"><a href="https://nnngo.org/consultation-reports/">Consultation Reports</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11589"><a href="https://nnngo.org/conference-reports/">Conference Reports</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11586"><a href="https://nnngo.org/infographics-reports/">Infographics Reports</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11581"><a href="https://nnngo.org/nnngo-strategic-plans/">NNNGO Strategic Plans</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11582"><a href="https://nnngo.org/research-reports/">Research Reports</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11585"><a href="https://nnngo.org/manuals/">Manuals</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11584"><a href="https://nnngo.org/memorandums/">Memorandums</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11583"><a href="https://nnngo.org/policy-briefs/">Policy Briefs</a></li>
+</ul></div>
+</li>
+<li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-14871"><a href="https://nnngo.org/#">Partnership</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-4947"><a href="https://nnngo.org/contact-us/">Contact us<i class="fa fa-chevron-right trigger"></i></a>
+<div class="mp-level" data-level="2"><a class="mp-back text-center" href="https://nnngo.org/#"><i class="fa fa-arrow-left"></i></a><ul class="sub-menu">
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-14183"><a href="https://nnngo.org/member-courses/">Member Courses</a></li>
+</ul></div>
+</li>
+</ul></div></nav><div id="page" class="site">
+        <header id="masthead" class="site-header">
+            <div class="site-header">
+    		<div data-elementor-type="wp-post" data-elementor-id="5155" class="elementor elementor-5155">
+						<section class="elementor-section elementor-top-section elementor-element elementor-element-ef41c55 elementor-section-content-middle elementor-section-stretched elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="ef41c55" data-element_type="section" data-settings="{&quot;stretch_section&quot;:&quot;section-stretched&quot;,&quot;background_background&quot;:&quot;classic&quot;}" style="width: 1349px; left: 8.5px;">
+						<div class="elementor-container elementor-column-gap-no">
+					<div class="elementor-column elementor-col-100 elementor-top-column elementor-element elementor-element-74b710b" data-id="74b710b" data-element_type="column">
+			<div class="elementor-widget-wrap elementor-element-populated">
+						<div class="elementor-element elementor-element-486779a elementor-widget__width-auto elementor-widget elementor-widget-opal-site-logo elementor-widget-image" data-id="486779a" data-element_type="widget" data-widget_type="opal-site-logo.default">
+				<div class="elementor-widget-container">
+					        <div class="elementor-image">
+                                            <a href="https://nnngo.org/">
+                                        <img fetchpriority="high" width="590" height="227" src="./NNNGO – Nigeria Network of NGOs_files/NNNGO.png" class="attachment-full size-full wp-image-14214" alt="" decoding="async" srcset="https://nnngo.org/wp-content/uploads/2019/08/NNNGO.png 590w, https://nnngo.org/wp-content/uploads/2019/08/NNNGO-300x115.png 300w, https://nnngo.org/wp-content/uploads/2019/08/NNNGO-400x154.png 400w" sizes="(max-width: 590px) 100vw, 590px">                                    </a>
+                                                    </div>
+        				</div>
+				</div>
+				<div class="elementor-element elementor-element-26de578 elementor-nav-menu__align-right elementor-menu-toggle-mobile__align-right elementor-menu-toggle-tablet__align-right elementor-widget__width-auto mx-xl-auto ml-auto elementor-nav-menu--indicator-angle elementor-nav-menu--dropdown-tablet elementor-nav-menu__text-align-aside elementor-nav-menu--toggle elementor-nav-menu--burger elementor-menu-toggle__align-left elementor-widget elementor-widget-opal-nav-menu" data-id="26de578" data-element_type="widget" data-settings="{&quot;layout&quot;:&quot;horizontal&quot;,&quot;toggle&quot;:&quot;burger&quot;}" data-widget_type="opal-nav-menu.default">
+				<div class="elementor-widget-container">
+					        <nav class="elementor-nav-menu--mobile-enable elementor-nav-menu--main elementor-nav-menu__container elementor-nav-menu--layout-horizontal e--pointer-none" data-submenusminwidth="250" data-submenusmaxwidth="500">
+                        <ul id="menu-main-menu" class="elementor-nav-menu" data-smartmenus-id="17403251091216013"><li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-home current-menu-item page_item page-item-10454 current_page_item menu-item-10684"><a href="https://nnngo.org/" aria-current="page" class="elementor-item  elementor-item-active">Home</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-4957"><a href="https://nnngo.org/who-we-are/" class="elementor-item has-submenu" id="sm-17403251091216013-1" aria-haspopup="true" aria-controls="sm-17403251091216013-2" aria-expanded="false">Who We Are<span class="sub-arrow"></span></a>
+<ul class="sub-menu elementor-nav-menu--dropdown sm-nowrap" id="sm-17403251091216013-2" role="group" aria-hidden="true" aria-labelledby="sm-17403251091216013-1" aria-expanded="false" style="width: auto; display: none; top: auto; left: 0px; margin-left: 0px; margin-top: 0px; min-width: 250px; max-width: 500px;">
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-13977"><a href="https://nnngo.org/our-history/" class="elementor-sub-item">Our History</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4956"><a href="https://nnngo.org/governance/" class="elementor-sub-item">Governance</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-14001"><a href="https://nnngo.org/networks/" class="elementor-sub-item">Networks</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-14014"><a href="https://nnngo.org/programmes/" class="elementor-sub-item">Programmes</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-14121"><a href="https://nnngo.org/management-team/" class="elementor-sub-item">Management Team</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-13801"><a href="https://nnngo.org/funders-and-financials/" class="elementor-sub-item">Funders &amp; Financials</a></li>
+</ul>
+</li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-14150"><a href="https://nnngo.org/how-we-help/" class="elementor-item has-submenu" id="sm-17403251091216013-3" aria-haspopup="true" aria-controls="sm-17403251091216013-4" aria-expanded="false">How We Help<span class="sub-arrow"></span></a>
+<ul class="sub-menu elementor-nav-menu--dropdown sm-nowrap" id="sm-17403251091216013-4" role="group" aria-hidden="true" aria-labelledby="sm-17403251091216013-3" aria-expanded="false" style="width: auto; display: none; top: auto; left: 0px; margin-left: 0px; margin-top: 0px; min-width: 250px; max-width: 500px;">
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10424"><a href="https://nnngo.org/ngos-directory-3/" class="elementor-sub-item">NGO Directory</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10421"><a href="https://nnngo.org/ngos-directory-by-thematic/" class="elementor-sub-item">NGO Directory by Thematic Areas</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10422"><a href="https://nnngo.org/ngos-directory-by-state/" class="elementor-sub-item">NGO Directory by State</a></li>
+</ul>
+</li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-4953"><a href="https://nnngo.org/members/" class="elementor-item has-submenu" id="sm-17403251091216013-5" aria-haspopup="true" aria-controls="sm-17403251091216013-6" aria-expanded="false">Membership<span class="sub-arrow"></span></a>
+<ul class="sub-menu elementor-nav-menu--dropdown" id="sm-17403251091216013-6" role="group" aria-hidden="true" aria-labelledby="sm-17403251091216013-5" aria-expanded="false">
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10620"><a href="https://nnngo.org/join-now/" class="elementor-sub-item">Join Now</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10437"><a href="https://nnngo.org/membership-2/" class="elementor-sub-item">Membership</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10438"><a href="https://nnngo.org/membership-benefits/" class="elementor-sub-item">Membership Benefits</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10439"><a href="https://nnngo.org/membership-category/" class="elementor-sub-item">Membership Categories</a></li>
+</ul>
+</li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-10685"><a href="https://nnngo.org/resources/" class="elementor-item has-submenu" id="sm-17403251091216013-7" aria-haspopup="true" aria-controls="sm-17403251091216013-8" aria-expanded="false">RESOURCES<span class="sub-arrow"></span></a>
+<ul class="sub-menu elementor-nav-menu--dropdown" id="sm-17403251091216013-8" role="group" aria-hidden="true" aria-labelledby="sm-17403251091216013-7" aria-expanded="false">
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10436"><a href="https://nnngo.org/general-articles/" class="elementor-sub-item">General Articles</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11590"><a href="https://nnngo.org/civil-society-advisories/" class="elementor-sub-item">Civil Society Advisories</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11588"><a href="https://nnngo.org/consultation-reports/" class="elementor-sub-item">Consultation Reports</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11589"><a href="https://nnngo.org/conference-reports/" class="elementor-sub-item">Conference Reports</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11586"><a href="https://nnngo.org/infographics-reports/" class="elementor-sub-item">Infographics Reports</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11581"><a href="https://nnngo.org/nnngo-strategic-plans/" class="elementor-sub-item">NNNGO Strategic Plans</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11582"><a href="https://nnngo.org/research-reports/" class="elementor-sub-item">Research Reports</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11585"><a href="https://nnngo.org/manuals/" class="elementor-sub-item">Manuals</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11584"><a href="https://nnngo.org/memorandums/" class="elementor-sub-item">Memorandums</a></li>
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11583"><a href="https://nnngo.org/policy-briefs/" class="elementor-sub-item">Policy Briefs</a></li>
+</ul>
+</li>
+<li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-14871"><a href="https://nnngo.org/#" class="elementor-item">Partnership</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-4947"><a href="https://nnngo.org/contact-us/" class="elementor-item has-submenu" id="sm-17403251091216013-9" aria-haspopup="true" aria-controls="sm-17403251091216013-10" aria-expanded="false">Contact us<span class="sub-arrow"></span></a>
+<ul class="sub-menu elementor-nav-menu--dropdown" id="sm-17403251091216013-10" role="group" aria-hidden="true" aria-labelledby="sm-17403251091216013-9" aria-expanded="false">
+	<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-14183"><a href="https://nnngo.org/member-courses/" class="elementor-sub-item">Member Courses</a></li>
+</ul>
+</li>
+</ul>        </nav>
+        
+                <div class="elementor-menu-toggle" data-target="#menu-26de578">
+                    <i class="eicon" aria-hidden="true"></i>
+                                    </div>
+                
+                				</div>
+				</div>
+				<div class="elementor-element elementor-element-d146b96 elementor-search-form--skin-full_screen elementor-widget__width-auto elementor-hidden-tablet elementor-hidden-phone elementor-widget elementor-widget-opal-search-form" data-id="d146b96" data-element_type="widget" data-settings="{&quot;skin&quot;:&quot;full_screen&quot;}" data-widget_type="opal-search-form.default">
+				<div class="elementor-widget-container">
+					        <form class="elementor-search-form" role="search" action="https://nnngo.org/" method="get">
+                            <div class="elementor-search-form__toggle">
+                    <i class="opal-icon-search" aria-hidden="true"></i>
+                </div>
+            
+            <div class="elementor-search-form__container">
+                                <div class="w-100 elementor-search-form--full-screen-inner">
+                                                            <input placeholder="Search..." class="elementor-search-form__input" type="search" name="s" title="Search" value="">
+                                                                                <div class="dialog-lightbox-close-button dialog-close-button">
+                        <i class="eicon-close" aria-hidden="true"></i>
+                        <span class="elementor-screen-only">Close</span>
+                    </div>
+                </div>
+                        </div>
+        </form>
+        				</div>
+				</div>
+				<div class="elementor-element elementor-element-1b0eebc elementor-widget__width-auto elementor-hidden-tablet elementor-hidden-phone elementor-button-primary elementor-widget elementor-widget-button" data-id="1b0eebc" data-element_type="widget" data-widget_type="button.default">
+				<div class="elementor-widget-container">
+					        <div class="elementor-button-wrapper">
+            <a href="https://nnngo.org/welcome-to-join-now/" class="elementor-button-link elementor-button elementor-size-md" role="button">
+                        <span class="elementor-button-content-wrapper">
+			                <span class="elementor-button-icon elementor-align-icon-left">
+				<i class="opal-icon-arrow-circle-right" aria-hidden="true"></i>
+			</span>
+                        <span class="elementor-button-text">Join Now</span>
+		</span>
+
+
+                </a>
+        </div>
+        				</div>
+				</div>
+					</div>
+		</div>
+					</div>
+		</section>
+				</div>
+		</div>
+        </header>
+        <div id="page-title-bar" class="page-title-bar">
+                    </div>
+        <div class="site-content-contain">
+            <div id="content" class="site-content">    <div id="primary" class="content-area">
+        <main id="main" class="site-main">
+            		<div data-elementor-type="wp-page" data-elementor-id="10454" class="elementor elementor-10454">
+				<div class="elementor-element elementor-element-2514b6d3 e-con-full e-flex e-con e-parent e-lazyloaded" data-id="2514b6d3" data-element_type="container" data-settings="{&quot;background_background&quot;:&quot;classic&quot;}">
+				<div class="elementor-element elementor-element-dc7788f elementor-widget__width-inherit elementor-widget elementor-widget-spacer" data-id="dc7788f" data-element_type="widget" data-widget_type="spacer.default">
+				<div class="elementor-widget-container">
+							<div class="elementor-spacer">
+			<div class="elementor-spacer-inner"></div>
+		</div>
+						</div>
+				</div>
+				</div>
+		<div class="elementor-element elementor-element-007c455 e-con-full e-flex e-con e-parent e-lazyloaded" data-id="007c455" data-element_type="container" data-settings="{&quot;background_background&quot;:&quot;classic&quot;}">
+				<div class="elementor-element elementor-element-3ad66d4 elementor-widget__width-inherit elementor-widget elementor-widget-spacer" data-id="3ad66d4" data-element_type="widget" data-widget_type="spacer.default">
+				<div class="elementor-widget-container">
+							<div class="elementor-spacer">
+			<div class="elementor-spacer-inner"></div>
+		</div>
+						</div>
+				</div>
+				<div class="elementor-element elementor-element-47d4c01 elementor-align-left elementor-widget__width-initial elementor-widget elementor-widget-heading" data-id="47d4c01" data-element_type="widget" data-widget_type="heading.default">
+				<div class="elementor-widget-container">
+					<h2 class="elementor-heading-title elementor-size-default">Welcome to&nbsp;NNNGOs</h2>				</div>
+				</div>
+				<div class="elementor-element elementor-element-119000e elementor-widget__width-inherit elementor-widget elementor-widget-spacer" data-id="119000e" data-element_type="widget" data-widget_type="spacer.default">
+				<div class="elementor-widget-container">
+							<div class="elementor-spacer">
+			<div class="elementor-spacer-inner"></div>
+		</div>
+						</div>
+				</div>
+				<div class="elementor-element elementor-element-0e45d8f elementor-align-left elementor-widget__width-initial elementor-widget elementor-widget-heading" data-id="0e45d8f" data-element_type="widget" data-widget_type="heading.default">
+				<div class="elementor-widget-container">
+					<p class="elementor-heading-title elementor-size-default">The Nigeria Network of NGOs (NNNGO) is the first generic membership body for civil society organisations in Nigeria that facilitates effective advocacy on issues of poverty and other developmental issues.</p><span class="heading-decor"></span>				</div>
+				</div>
+				<div class="elementor-element elementor-element-c13ffc7 elementor-widget__width-inherit elementor-widget elementor-widget-spacer" data-id="c13ffc7" data-element_type="widget" data-widget_type="spacer.default">
+				<div class="elementor-widget-container">
+							<div class="elementor-spacer">
+			<div class="elementor-spacer-inner"></div>
+		</div>
+						</div>
+				</div>
+				<div class="elementor-element elementor-element-b50d3a9 elementor-button-primary elementor-widget elementor-widget-button" data-id="b50d3a9" data-element_type="widget" data-widget_type="button.default">
+				<div class="elementor-widget-container">
+					        <div class="elementor-button-wrapper">
+            <a href="https://nnngo.org/#https://nnngo.org/who-we-are/" class="elementor-button-link elementor-button elementor-size-md" role="button">
+                        <span class="elementor-button-content-wrapper">
+			            <span class="elementor-button-text">Read more</span>
+		</span>
+
+
+                </a>
+        </div>
+        				</div>
+				</div>
+				<div class="elementor-element elementor-element-bf46d15 elementor-widget__width-inherit elementor-widget elementor-widget-spacer" data-id="bf46d15" data-element_type="widget" data-widget_type="spacer.default">
+				<div class="elementor-widget-container">
+							<div class="elementor-spacer">
+			<div class="elementor-spacer-inner"></div>
+		</div>
+						</div>
+				</div>
+				</div>
+		<div class="elementor-element elementor-element-e3ad8b7 e-flex e-con-boxed e-con e-parent e-lazyloaded" data-id="e3ad8b7" data-element_type="container">
+					<div class="e-con-inner">
+				<div class="elementor-element elementor-element-d84ed98 elementor-widget elementor-widget-heading" data-id="d84ed98" data-element_type="widget" data-widget_type="heading.default">
+				<div class="elementor-widget-container">
+					<h2 class="elementor-heading-title elementor-size-xxl">What We Do</h2>				</div>
+				</div>
+					</div>
+				</div>
+		<div class="elementor-element elementor-element-6c36849 e-flex e-con-boxed e-con e-parent e-lazyloaded" data-id="6c36849" data-element_type="container">
+					<div class="e-con-inner">
+				<div class="elementor-element elementor-element-0a2745b elementor-widget__width-initial elementor-widget elementor-widget-text-editor" data-id="0a2745b" data-element_type="widget" data-widget_type="text-editor.default">
+				<div class="elementor-widget-container">
+					        <div class="elementor-text-editor elementor-clearfix"><p>NNNGO supports Nigerian NGOs in their commitment to poverty reduction, promotion of human rights and in bringing development to the door-steps of the common man.</p></div>
+        				</div>
+				</div>
+					</div>
+				</div>
+		<div class="elementor-element elementor-element-496b4fb e-flex e-con-boxed e-con e-parent e-lazyloaded" data-id="496b4fb" data-element_type="container">
+					<div class="e-con-inner">
+		<div class="elementor-element elementor-element-c1d4f4e e-con-full e-flex e-con e-child" data-id="c1d4f4e" data-element_type="container">
+				<div class="elementor-element elementor-element-df23f68 elementor-cta--skin-classic call-to-action-wrapper-transform-none elementor-button-dark elementor-animated-content elementor-bg-transform elementor-bg-transform-zoom-in elementor-widget elementor-widget-call-to-action" data-id="df23f68" data-element_type="widget" data-widget_type="call-to-action.default">
+				<div class="elementor-widget-container">
+					    <div class="elementor-cta">
+
+                    <div class="elementor-cta__bg-wrapper">
+                                <div class="elementor-cta__bg elementor-bg" style="background-image: url(https://nnngo.org/wp-content/uploads/2024/02/DSC0586-1024x680.jpg);"></div>
+                <div class="elementor-cta__bg-overlay"></div>
+            </div>
+                            <div class="elementor-cta__content">
+
+            
+            
+            
+                            <h2 class="elementor-cta__title elementor-cta__content-item elementor-content-item" data-letter="Who We Are">
+                Who We Are                </h2>
+            
+                            <div class="elementor-cta__description elementor-cta__content-item elementor-content-item">
+                    The Nigeria Network of NGOs (NNNGO) is the first generic membership body for civil society organisations in Nigeria that facilitates effective advocacy on issues of poverty and other developmental issues.                </div>
+            
+                            <div class="elementor-cta__button-wrapper elementor-cta__content-item elementor-content-item ">
+                    <a class="elementor-cta__button elementor-button elementor-size-sm" href="https://nnngo.org/who-we-are/">
+                                <span class="elementor-button-content-wrapper">
+			                <span class="elementor-button-icon elementor-align-icon-left elementor-button-icon elementor-align-icon-left">
+				<i class="opal-icon-next" aria-hidden="true"></i>
+			</span>
+                        <span class="elementor-button-text">Read more</span>
+		</span>
+
+
+                        </a>
+                </div>
+                        </div>
+                        </div>
+        				</div>
+				</div>
+				</div>
+		<div class="elementor-element elementor-element-55ea75b e-con-full e-flex e-con e-child" data-id="55ea75b" data-element_type="container">
+				<div class="elementor-element elementor-element-f57abe8 elementor-cta--skin-classic call-to-action-wrapper-transform-none elementor-button-dark elementor-animated-content elementor-bg-transform elementor-bg-transform-zoom-in elementor-widget elementor-widget-call-to-action" data-id="f57abe8" data-element_type="widget" data-widget_type="call-to-action.default">
+				<div class="elementor-widget-container">
+					    <div class="elementor-cta">
+
+                    <div class="elementor-cta__bg-wrapper">
+                                <div class="elementor-cta__bg elementor-bg" style="background-image: url(https://nnngo.org/wp-content/uploads/2024/02/KAZY3193-scaled-e1721740243143-1024x437.jpg);"></div>
+                <div class="elementor-cta__bg-overlay"></div>
+            </div>
+                            <div class="elementor-cta__content">
+
+            
+            
+            
+                            <h2 class="elementor-cta__title elementor-cta__content-item elementor-content-item" data-letter="Membership">
+                Membership                </h2>
+            
+                            <div class="elementor-cta__description elementor-cta__content-item elementor-content-item">
+                    Membership of the Network will provide you with technical information, advocacy and professional networking. It also gives you the right to shape our activities and priorities for the future.                </div>
+            
+                            <div class="elementor-cta__button-wrapper elementor-cta__content-item elementor-content-item ">
+                    <a class="elementor-cta__button elementor-button elementor-size-sm" href="https://nnngo.org/members/">
+                                <span class="elementor-button-content-wrapper">
+			                <span class="elementor-button-icon elementor-align-icon-left elementor-button-icon elementor-align-icon-left">
+				<i class="opal-icon-next" aria-hidden="true"></i>
+			</span>
+                        <span class="elementor-button-text">Read more</span>
+		</span>
+
+
+                        </a>
+                </div>
+                        </div>
+                        </div>
+        				</div>
+				</div>
+				</div>
+		<div class="elementor-element elementor-element-143e0d0 e-con-full e-flex e-con e-child" data-id="143e0d0" data-element_type="container">
+				<div class="elementor-element elementor-element-3163b04 elementor-cta--skin-classic call-to-action-wrapper-transform-none elementor-button-dark elementor-animated-content elementor-bg-transform elementor-bg-transform-zoom-in elementor-widget elementor-widget-call-to-action" data-id="3163b04" data-element_type="widget" data-widget_type="call-to-action.default">
+				<div class="elementor-widget-container">
+					    <div class="elementor-cta">
+
+                    <div class="elementor-cta__bg-wrapper">
+                                <div class="elementor-cta__bg elementor-bg" style="background-image: url(https://nnngo.org/wp-content/uploads/2024/02/KAZY3176-1024x683.jpg);"></div>
+                <div class="elementor-cta__bg-overlay"></div>
+            </div>
+                            <div class="elementor-cta__content">
+
+            
+            
+            
+                            <h2 class="elementor-cta__title elementor-cta__content-item elementor-content-item" data-letter="Resources">
+                Resources                </h2>
+            
+                            <div class="elementor-cta__description elementor-cta__content-item elementor-content-item">
+                    The Nigeria Network of NGOs has more than 3,900-member organisations and works with diverse institutions within and outside the civil society ranging from academics, trade unions, funders through to private sector.                </div>
+            
+                            <div class="elementor-cta__button-wrapper elementor-cta__content-item elementor-content-item ">
+                    <a class="elementor-cta__button elementor-button elementor-size-sm" href="https://nnngo.org/resources/">
+                                <span class="elementor-button-content-wrapper">
+			                <span class="elementor-button-icon elementor-align-icon-left elementor-button-icon elementor-align-icon-left">
+				<i class="opal-icon-next" aria-hidden="true"></i>
+			</span>
+                        <span class="elementor-button-text">Read More</span>
+		</span>
+
+
+                        </a>
+                </div>
+                        </div>
+                        </div>
+        				</div>
+				</div>
+				</div>
+		<div class="elementor-element elementor-element-3c66276 e-con-full e-flex e-con e-child" data-id="3c66276" data-element_type="container">
+				<div class="elementor-element elementor-element-8c738a5 elementor-widget elementor-widget-html" data-id="8c738a5" data-element_type="widget" data-widget_type="html.default">
+				<div class="elementor-widget-container">
+					<iframe src="./NNNGO – Nigeria Network of NGOs_files/page.html" width="280" height="530" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>				</div>
+				</div>
+				</div>
+					</div>
+				</div>
+				</div>
+		        </main><!-- #main -->
+    </div><!-- #primary -->
+</div><!-- #content -->
+</div><!-- .site-content-contain -->
+<footer id="colophon" class="site-footer">
+    <div class="wrap"><div class="container">		<div data-elementor-type="wp-post" data-elementor-id="1059" class="elementor elementor-1059">
+						<section class="elementor-section elementor-top-section elementor-element elementor-element-27949a2 elementor-section-stretched elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="27949a2" data-element_type="section" data-settings="{&quot;stretch_section&quot;:&quot;section-stretched&quot;,&quot;background_background&quot;:&quot;classic&quot;}" style="width: 1349px; left: 8.5px;">
+						<div class="elementor-container elementor-column-gap-no">
+					<div class="elementor-column elementor-col-20 elementor-top-column elementor-element elementor-element-a44f22d" data-id="a44f22d" data-element_type="column">
+			<div class="elementor-widget-wrap elementor-element-populated">
+						<div class="elementor-element elementor-element-a97759d elementor-widget elementor-widget-opal-site-logo elementor-widget-image" data-id="a97759d" data-element_type="widget" data-widget_type="opal-site-logo.default">
+				<div class="elementor-widget-container">
+					        <div class="elementor-image">
+                                            <a href="https://nnngo.org/">
+                                        <img width="1201" height="445" src="./NNNGO – Nigeria Network of NGOs_files/NNNGO-logo-white-06.png" class="attachment-full size-full wp-image-8940" alt="" decoding="async" srcset="https://nnngo.org/wp-content/uploads/2019/08/NNNGO-logo-white-06.png 1201w, https://nnngo.org/wp-content/uploads/2019/08/NNNGO-logo-white-06-300x111.png 300w, https://nnngo.org/wp-content/uploads/2019/08/NNNGO-logo-white-06-1024x379.png 1024w, https://nnngo.org/wp-content/uploads/2019/08/NNNGO-logo-white-06-768x285.png 768w, https://nnngo.org/wp-content/uploads/2019/08/NNNGO-logo-white-06-400x148.png 400w" sizes="(max-width: 1201px) 100vw, 1201px">                                    </a>
+                                                    </div>
+        				</div>
+				</div>
+				<div class="elementor-element elementor-element-4ae71d3 elementor-widget elementor-widget-text-editor" data-id="4ae71d3" data-element_type="widget" data-widget_type="text-editor.default">
+				<div class="elementor-widget-container">
+					        <div class="elementor-text-editor elementor-clearfix">The Nigeria Network of NGOs (NNNGO) is the first generic membership body for civil society organisations in Nigeria that facilitates effective advocacy on issues of poverty and other developmental issues. Established in 1992, NNNGO represents over 3495 organisations ranging from small groups working </div>
+        				</div>
+				</div>
+					</div>
+		</div>
+				<div class="elementor-column elementor-col-20 elementor-top-column elementor-element elementor-element-6122a39" data-id="6122a39" data-element_type="column">
+			<div class="elementor-widget-wrap elementor-element-populated">
+						<div class="elementor-element elementor-element-4277337 elementor-mobile-align-center elementor-widget elementor-widget-heading" data-id="4277337" data-element_type="widget" data-widget_type="heading.default">
+				<div class="elementor-widget-container">
+					<h4 class="elementor-heading-title elementor-size-default">Do you have questions?
+Call or visit us.</h4>				</div>
+				</div>
+				<div class="elementor-element elementor-element-f380243 elementor-widget__width-auto elementor-widget elementor-widget-opal-phone" data-id="f380243" data-element_type="widget" data-widget_type="opal-phone.default">
+				<div class="elementor-widget-container">
+					
+        <div class="elementor-phone">
+            <i class="opal-icon-phone-square-2" aria-hidden="true"></i>
+            <div class="phone-box">
+                                    <span class="elementor-phone-subtitle">
+                    +2349069460107                </span>
+                                </div>
+            <a href="tel:8441800333555" class="elementor-phone-link"></a>
+        </div>
+        				</div>
+				</div>
+				<div class="elementor-element elementor-element-dd9ed8e elementor-widget elementor-widget-text-editor" data-id="dd9ed8e" data-element_type="widget" data-widget_type="text-editor.default">
+				<div class="elementor-widget-container">
+					        <div class="elementor-text-editor elementor-clearfix"><p>Plot 3 Sobanjo avenue, Idi-ishin Jericho Ibadan, Oyo, Nigeria.</p></div>
+        				</div>
+				</div>
+				<div class="elementor-element elementor-element-9405576 elementor-widget elementor-widget-text-editor" data-id="9405576" data-element_type="widget" data-widget_type="text-editor.default">
+				<div class="elementor-widget-container">
+					        <div class="elementor-text-editor elementor-clearfix"><p>15 Ramat Crescent, Ogudu GRA, Lagos, Nlgeria</p></div>
+        				</div>
+				</div>
+				<div class="elementor-element elementor-element-552086f elementor-widget__width-auto elementor-widget elementor-widget-text-editor" data-id="552086f" data-element_type="widget" data-widget_type="text-editor.default">
+				<div class="elementor-widget-container">
+					        <div class="elementor-text-editor elementor-clearfix"><p>nnngo@nnngo.org&nbsp;</p></div>
+        				</div>
+				</div>
+					</div>
+		</div>
+				<div class="elementor-column elementor-col-20 elementor-top-column elementor-element elementor-element-af8f5cd" data-id="af8f5cd" data-element_type="column">
+			<div class="elementor-widget-wrap elementor-element-populated">
+						<div class="elementor-element elementor-element-1c36145 elementor-mobile-align-center elementor-widget elementor-widget-heading" data-id="1c36145" data-element_type="widget" data-widget_type="heading.default">
+				<div class="elementor-widget-container">
+					<h4 class="elementor-heading-title elementor-size-default">Newsletter</h4>				</div>
+				</div>
+				<div class="elementor-element elementor-element-c8182cf elementor-widget elementor-widget-text-editor" data-id="c8182cf" data-element_type="widget" data-widget_type="text-editor.default">
+				<div class="elementor-widget-container">
+					        <div class="elementor-text-editor elementor-clearfix"><p>Get latest news &amp; update</p></div>
+        				</div>
+				</div>
+				<div class="elementor-element elementor-element-fbce572 elementor-widget elementor-widget-html" data-id="fbce572" data-element_type="widget" data-widget_type="html.default">
+				<div class="elementor-widget-container">
+					<!-- Begin Mailchimp Signup Form -->
+
+<style>
+	#mc_embed_signup{dbackground:#fff; clear:left; font:14px Helvetica,Arial,sans-serif; }<br />	/* Add your own Mailchimp form style overrides in your site stylesheet or in this style block.<br />	   We recommend moving this block and the preceding CSS link to the HEAD of your HTML file. */<br /></style>
+<div id="mc_embed_signup"><form id="mc-embedded-subscribe-form" class="validate" action="https://nnngo.us10.list-manage.com/subscribe/post?u=0cd673c44c0d4113376c30502&amp;id=1efe16c4c5" method="post" name="mc-embedded-subscribe-form" novalidate="novalidate" target="_blank">
+<div id="mc_embed_signup_scroll">
+<h2></h2>
+<div class="indicates-required"></div>
+<div class="mc-field-group">
+<input id="mce-EMAIL" class="required email" style="width: 150px;" name="EMAIL" placeholder="Your Email" type="email" value="" aria-required="true"></div>
+<div id="mce-responses" class="clear">
+<div id="mce-error-response" class="response" style="display: none;"></div>
+<div id="mce-success-response" class="response" style="display: none;"></div>
+</div>
+<!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+<div style="position: absolute; left: -5000px;" aria-hidden="true"><input tabindex="-1" name="b_0cd673c44c0d4113376c30502_1efe16c4c5" type="text" value=""></div>
+<div class="clear" style="padding-top: 10px; "><input id="mc-embedded-subscribe" style="width:150px;" class="button" name="subscribe" type="submit" value="Subscribe"></div>
+</div>
+</form></div>
+<script src="./NNNGO – Nigeria Network of NGOs_files/mc-validate.js.download"></script><script>(function($) {window.fnames = new Array(); window.ftypes = new Array();fnames[0]='EMAIL';ftypes[0]='email';fnames[1]='FNAME';ftypes[1]='text';fnames[2]='LNAME';ftypes[2]='text';fnames[3]='ADDRESS';ftypes[3]='address';fnames[4]='PHONE';ftypes[4]='phone';fnames[5]='BIRTHDAY';ftypes[5]='birthday';}(jQuery));var $mcj = jQuery.noConflict(true);</script>
+<!--End mc_embed_signup-->
+				</div>
+				</div>
+					</div>
+		</div>
+				<div class="elementor-column elementor-col-20 elementor-top-column elementor-element elementor-element-04d733c" data-id="04d733c" data-element_type="column">
+			<div class="elementor-widget-wrap elementor-element-populated">
+						<div class="elementor-element elementor-element-a10511a elementor-mobile-align-center elementor-widget elementor-widget-heading" data-id="a10511a" data-element_type="widget" data-widget_type="heading.default">
+				<div class="elementor-widget-container">
+					<h4 class="elementor-heading-title elementor-size-default">Quick Links</h4>				</div>
+				</div>
+				<div class="elementor-element elementor-element-1c9f2d1 elementor-nav-menu__align-left elementor-nav-menu-mobile__align-center elementor-nav-menu--indicator-none elementor-widget elementor-widget-opal-nav-menu" data-id="1c9f2d1" data-element_type="widget" data-settings="{&quot;layout&quot;:&quot;vertical&quot;}" data-widget_type="opal-nav-menu.default">
+				<div class="elementor-widget-container">
+					        <nav data-submenusminwidth="50" data-submenusmaxwidth="500" class="elementor-nav-menu--main elementor-nav-menu__container elementor-nav-menu--layout-vertical e--pointer-none">
+                        <ul id="menu-footer-quick-links" class="elementor-nav-menu sm-vertical" data-smartmenus-id="17403251092270107"><li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10726"><a href="https://nnngo.org/join-now/" class="elementor-item">Join Now</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10721"><a href="https://nnngo.org/ngos-directory-3/" class="elementor-item">NGO’s Directory</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10722"><a href="https://nnngo.org/ngos-directory-by-state/" class="elementor-item">NGO’s Directory by State</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10723"><a href="https://nnngo.org/ngos-directory-by-thematic/" class="elementor-item">NGOs Directory by Thematic Areas</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10725"><a href="https://nnngo.org/membership-category/" class="elementor-item">Membership Category</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10733"><a href="https://nnngo.org/membership-benefits/" class="elementor-item">Membership Benefits</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-10734"><a href="https://nnngo.org/resources/" class="elementor-item">Resources</a></li>
+</ul>        </nav>
+        				</div>
+				</div>
+					</div>
+		</div>
+				<div class="elementor-column elementor-col-20 elementor-top-column elementor-element elementor-element-c376f9e" data-id="c376f9e" data-element_type="column">
+			<div class="elementor-widget-wrap elementor-element-populated">
+						<div class="elementor-element elementor-element-f424d3f elementor-mobile-align-center elementor-widget elementor-widget-heading" data-id="f424d3f" data-element_type="widget" data-widget_type="heading.default">
+				<div class="elementor-widget-container">
+					<h4 class="elementor-heading-title elementor-size-default">Connect With Us</h4>				</div>
+				</div>
+				<div class="elementor-element elementor-element-f25fb98 elementor-widget elementor-widget-html" data-id="f25fb98" data-element_type="widget" data-widget_type="html.default">
+				<div class="elementor-widget-container">
+					<iframe src="./NNNGO – Nigeria Network of NGOs_files/embed.html" width="350" height="280" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>				</div>
+				</div>
+					</div>
+		</div>
+					</div>
+		</section>
+				<section class="elementor-section elementor-top-section elementor-element elementor-element-234a86e elementor-section-stretched elementor-section-content-middle elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="234a86e" data-element_type="section" data-settings="{&quot;stretch_section&quot;:&quot;section-stretched&quot;,&quot;background_background&quot;:&quot;classic&quot;}" style="width: 1349px; left: 8.5px;">
+						<div class="elementor-container elementor-column-gap-no">
+					<div class="elementor-column elementor-col-33 elementor-top-column elementor-element elementor-element-19e1c0d" data-id="19e1c0d" data-element_type="column">
+			<div class="elementor-widget-wrap elementor-element-populated">
+						<div class="elementor-element elementor-element-1246045 elementor-widget__width-auto elementor-widget elementor-widget-text-editor" data-id="1246045" data-element_type="widget" data-widget_type="text-editor.default">
+				<div class="elementor-widget-container">
+					        <div class="elementor-text-editor elementor-clearfix"><p>© 2024 – <span style="color: #ff9f0d;">Nigeria Network of NGO (NNNGO)</span>. All rights reserved.</p></div>
+        				</div>
+				</div>
+					</div>
+		</div>
+				<div class="elementor-column elementor-col-33 elementor-top-column elementor-element elementor-element-6ecceec" data-id="6ecceec" data-element_type="column">
+			<div class="elementor-widget-wrap elementor-element-populated">
+						<div class="elementor-element elementor-element-5e51a65 elementor-widget__width-auto elementor-widget elementor-widget-text-editor" data-id="5e51a65" data-element_type="widget" data-widget_type="text-editor.default">
+				<div class="elementor-widget-container">
+					        <div class="elementor-text-editor elementor-clearfix"><p>Follow us on social media</p></div>
+        				</div>
+				</div>
+					</div>
+		</div>
+				<div class="elementor-column elementor-col-33 elementor-top-column elementor-element elementor-element-136081b" data-id="136081b" data-element_type="column">
+			<div class="elementor-widget-wrap elementor-element-populated">
+						<div class="elementor-element elementor-element-ede3d40 elementor-widget__width-auto elementor-widget elementor-widget-text-editor" data-id="ede3d40" data-element_type="widget" data-widget_type="text-editor.default">
+				<div class="elementor-widget-container">
+					        <div class="elementor-text-editor elementor-clearfix"><a style="color: #FF9F0D; padding-right:100px;" href="https://nnngo.org/privacy-policy-2/">Privacy Policy</a></div>
+        				</div>
+				</div>
+					</div>
+		</div>
+					</div>
+		</section>
+				</div>
+		</div></div></footer><!-- #colophon -->
+</div><!-- #page -->
+</div><!-- end.opal-wrapper-->
+		<!-- Memberships powered by Paid Memberships Pro v3.4.2. -->
+	        <a href="https://nnngo.org/#" class="scrollup" style="display: none;"><span class="icon fa fa-angle-up"></span></a>        <div class="handheld-footer-bar">
+            <ul class="columns-1">
+                                    <li class="search">
+                        <a class="search-footer" href="https://nnngo.org/">Search</a><div class="site-search">
+<form role="search" method="get" class="search-form" action="https://nnngo.org/">
+    <div class="input-group">
+        <label for="search-form-67bb33afb2f2e">
+            <span class="screen-reader-text">Search for:</span>
+        </label>
+        <input type="search" id="search-form-67bb33afb2f2e" class="search-field form-control" placeholder="Search …" value="" name="s">
+        <span class="input-group-btn">
+            <button type="submit" class="search-submit">
+                <span class="opal-icon-search"></span>
+                <span class="screen-reader-text">Search</span>
+            </button>
+        </span>
+    </div>
+</form>
+
+
+</div>                    </li>
+                            </ul>
+        </div>
+        			<script>
+				const lazyloadRunObserver = () => {
+					const lazyloadBackgrounds = document.querySelectorAll( `.e-con.e-parent:not(.e-lazyloaded)` );
+					const lazyloadBackgroundObserver = new IntersectionObserver( ( entries ) => {
+						entries.forEach( ( entry ) => {
+							if ( entry.isIntersecting ) {
+								let lazyloadBackground = entry.target;
+								if( lazyloadBackground ) {
+									lazyloadBackground.classList.add( 'e-lazyloaded' );
+								}
+								lazyloadBackgroundObserver.unobserve( entry.target );
+							}
+						});
+					}, { rootMargin: '200px 0px 200px 0px' } );
+					lazyloadBackgrounds.forEach( ( lazyloadBackground ) => {
+						lazyloadBackgroundObserver.observe( lazyloadBackground );
+					} );
+				};
+				const events = [
+					'DOMContentLoaded',
+					'elementor/lazyload/observe',
+				];
+				events.forEach( ( event ) => {
+					document.addEventListener( event, lazyloadRunObserver );
+				} );
+			</script>
+			<style id="core-block-supports-inline-css">
+/**
+ * Core styles: block-supports
+ */
+
+</style>
+<link rel="stylesheet" id="magnific-popup-css" href="./NNNGO – Nigeria Network of NGOs_files/magnific-popup.css" media="all">
+<link rel="stylesheet" id="osf-elementor-addons-css" href="./NNNGO – Nigeria Network of NGOs_files/style(1).css" media="all">
+<link rel="stylesheet" id="osf-elementor-fixed-css" href="./NNNGO – Nigeria Network of NGOs_files/fix.css" media="all">
+<script id="dlm-xhr-js-extra">
+/* <![CDATA[ */
+var dlmXHRtranslations = {"error":"An error occurred while trying to download the file. Please try again.","not_found":"Download does not exist.","no_file_path":"No file path defined.","no_file_paths":"No file paths defined.","filetype":"Download is not allowed for this file type.","file_access_denied":"Access denied to this file.","access_denied":"Access denied. You do not have permission to download this file.","security_error":"Something is wrong with the file path.","file_not_found":"File not found."};
+/* ]]> */
+</script>
+<script id="dlm-xhr-js-before">
+/* <![CDATA[ */
+const dlmXHR = {"xhr_links":{"class":["download-link","download-button"]},"prevent_duplicates":true,"ajaxUrl":"https:\/\/nnngo.org\/wp-admin\/admin-ajax.php"}; dlmXHRinstance = {}; const dlmXHRGlobalLinks = "https://nnngo.org/download/"; const dlmNonXHRGlobalLinks = []; dlmXHRgif = "https://nnngo.org/wp-includes/images/spinner.gif"; const dlmXHRProgress = "1"
+/* ]]> */
+</script>
+<script src="./NNNGO – Nigeria Network of NGOs_files/dlm-xhr.js.download" id="dlm-xhr-js"></script>
+<script id="dlm-xhr-js-after">
+/* <![CDATA[ */
+document.addEventListener("dlm-xhr-modal-data", function(event) { if ("undefined" !== typeof event.detail.headers["x-dlm-tc-required"]) { event.detail.data["action"] = "dlm_terms_conditions_modal"; event.detail.data["dlm_modal_response"] = "true"; }});
+document.addEventListener("dlm-xhr-modal-data", function(event) {if ("undefined" !== typeof event.detail.headers["x-dlm-members-locked"]) {event.detail.data["action"] = "dlm_members_conditions_modal";event.detail.data["dlm_modal_response"] = "true";event.detail.data["dlm_members_form_redirect"] = "https://nnngo.org/";}});
+/* ]]> */
+</script>
+<script id="gainlove-theme-js-js-extra">
+/* <![CDATA[ */
+var osfAjax = {"ajaxurl":"https:\/\/nnngo.org\/wp-admin\/admin-ajax.php"};
+var gainloveJS = {"quote":"<i class=\"fa-quote-right\"><\/i>","smoothCallback":""};
+/* ]]> */
+</script>
+<script src="./NNNGO – Nigeria Network of NGOs_files/theme.js.download" id="gainlove-theme-js-js"></script>
+<script src="./NNNGO – Nigeria Network of NGOs_files/underscore.min.js.download" id="underscore-js"></script>
+<script id="wp-util-js-extra">
+/* <![CDATA[ */
+var _wpUtilSettings = {"ajax":{"url":"\/wp-admin\/admin-ajax.php"}};
+/* ]]> */
+</script>
+<script src="./NNNGO – Nigeria Network of NGOs_files/wp-util.js.download" id="wp-util-js"></script>
+<script src="./NNNGO – Nigeria Network of NGOs_files/sticky-layout.js.download" id="gainlove-theme-sticky-layout-js-js"></script>
+<script src="./NNNGO – Nigeria Network of NGOs_files/mlpushmenu.js.download" id="pushmenu-js"></script>
+<script src="./NNNGO – Nigeria Network of NGOs_files/classie.js.download" id="pushmenu-classie-js"></script>
+<script src="./NNNGO – Nigeria Network of NGOs_files/SmoothScroll.min.js.download" id="smoothscroll-js"></script>
+<script src="./NNNGO – Nigeria Network of NGOs_files/fullpage.min.js.download" id="fullpage-js"></script>
+<script src="./NNNGO – Nigeria Network of NGOs_files/webpack.runtime.js.download" id="elementor-webpack-runtime-js"></script>
+<script src="./NNNGO – Nigeria Network of NGOs_files/frontend-modules.js.download" id="elementor-frontend-modules-js"></script>
+<script src="./NNNGO – Nigeria Network of NGOs_files/core.js.download" id="jquery-ui-core-js"></script>
+<script id="elementor-frontend-js-before">
+/* <![CDATA[ */
+var elementorFrontendConfig = {"environmentMode":{"edit":false,"wpPreview":false,"isScriptDebug":true},"i18n":{"shareOnFacebook":"Share on Facebook","shareOnTwitter":"Share on Twitter","pinIt":"Pin it","download":"Download","downloadImage":"Download image","fullscreen":"Fullscreen","zoom":"Zoom","share":"Share","playVideo":"Play Video","previous":"Previous","next":"Next","close":"Close","a11yCarouselPrevSlideMessage":"Previous slide","a11yCarouselNextSlideMessage":"Next slide","a11yCarouselFirstSlideMessage":"This is the first slide","a11yCarouselLastSlideMessage":"This is the last slide","a11yCarouselPaginationBulletMessage":"Go to slide"},"is_rtl":false,"breakpoints":{"xs":0,"sm":480,"md":768,"lg":1025,"xl":1440,"xxl":1600},"responsive":{"breakpoints":{"mobile":{"label":"Mobile Portrait","value":767,"default_value":767,"direction":"max","is_enabled":true},"mobile_extra":{"label":"Mobile Landscape","value":880,"default_value":880,"direction":"max","is_enabled":false},"tablet":{"label":"Tablet Portrait","value":1024,"default_value":1024,"direction":"max","is_enabled":true},"tablet_extra":{"label":"Tablet Landscape","value":1200,"default_value":1200,"direction":"max","is_enabled":false},"laptop":{"label":"Laptop","value":1366,"default_value":1366,"direction":"max","is_enabled":false},"widescreen":{"label":"Widescreen","value":2400,"default_value":2400,"direction":"min","is_enabled":false}},"hasCustomBreakpoints":false},"version":"3.27.6","is_static":false,"experimentalFeatures":{"e_font_icon_svg":true,"additional_custom_breakpoints":true,"container":true,"e_swiper_latest":true,"e_onboarding":true,"home_screen":true,"landing-pages":true,"nested-elements":true,"editor_v2":true,"link-in-bio":true,"floating-buttons":true},"urls":{"assets":"https:\/\/nnngo.org\/wp-content\/plugins\/elementor\/assets\/","ajaxurl":"https:\/\/nnngo.org\/wp-admin\/admin-ajax.php","uploadUrl":"https:\/\/nnngo.org\/wp-content\/uploads"},"nonces":{"floatingButtonsClickTracking":"96358b85ae"},"swiperClass":"swiper","settings":{"page":[],"editorPreferences":[]},"kit":{"active_breakpoints":["viewport_mobile","viewport_tablet"],"global_image_lightbox":"yes","lightbox_enable_counter":"yes","lightbox_enable_fullscreen":"yes","lightbox_enable_zoom":"yes","lightbox_enable_share":"yes","lightbox_title_src":"title","lightbox_description_src":"description"},"post":{"id":10454,"title":"NNNGO%20%E2%80%93%20Nigeria%20Network%20of%20NGOs","excerpt":"","featuredImage":false}};
+/* ]]> */
+</script>
+<script src="./NNNGO – Nigeria Network of NGOs_files/frontend.js.download" id="elementor-frontend-js"></script><span id="elementor-device-mode" class="elementor-screen-only"></span>
+<script src="./NNNGO – Nigeria Network of NGOs_files/jquery.magnific-popup.min.js.download" id="magnific-popup-js"></script>
+<script src="./NNNGO – Nigeria Network of NGOs_files/jquery.smartmenus.min.js.download" id="smartmenus-js"></script>
+<script src="./NNNGO – Nigeria Network of NGOs_files/frontend(1).js.download" id="opal-elementor-frontend-js"></script>
+
+</body></html>

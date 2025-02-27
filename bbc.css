@@ -1,0 +1,245 @@
+body{
+    color: black;
+}
+
+li{
+    list-style-type: none;
+    display: inline;
+    margin-left: 17px;
+}
+
+ul{
+    text-align: center;
+}
+
+li:hover{
+    background-color: rgb(40, 210, 252);
+    color: #087736;
+}
+.sign-btn{
+    margin-left: 1100px;
+    width: 130px;
+    height: 40px;
+    background-color: rgb(255, 255, 255);
+    font-size: 20px;
+    color: rgb(238, 231, 231);  
+    transform: translateY(-70px);
+}
+
+:hover.sign-btn{
+    background-color: rgb(88, 85, 85);
+    color: black;
+    font-weight: bolder;
+}
+
+.reg-btn{
+    margin-left: 200px;
+    width: 130px;
+    height: 40px;
+    background-color: white;
+    /* color: black; */
+    transform: translateY(-30px);
+    font-size: 20px;
+}
+
+:hover.reg-btn{
+    background-color:rgb(117, 117, 113);
+    color: white;
+    font-weight: bolder;
+}
+
+.logo{
+    width: 100px;
+    margin-left: 630px;
+    margin-top: -30px;
+}
+
+a{
+    text-decoration: none;
+    color: black;
+}
+
+/* Section */
+
+.sub-heading{
+    color: rgb(170, 7, 7);
+    font-size: 50px;
+    margin-left: 40px;
+}
+
+@keyframes pluse{
+    0%{
+        transform: scale(1);
+        opacity: 1;
+    }
+    100%{
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
+.live-circle{
+    width: 20px;
+    height: 20px;
+    animation: pluse 1s infinite;
+    background-color: red;
+    border-radius: 50%;
+    position: relative;
+    color: red;
+    margin-left: 40px;
+}
+
+.livee{
+    color: red;
+    font-size: 30px;
+    margin-left: 40px;
+    margin-top: -25px;
+    margin-left: 70px;
+}
+
+.first-hr{
+    height: 2px;
+    background-color: rgb(26, 24, 24);
+    width: 92%;
+    margin-top: -50px;
+}
+
+.sec-sub-heading{
+    margin-left: 40px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    margin-top: -30px;
+}
+
+.putin-image{
+    width: 550px;
+    margin-left: 430px;
+    margin-top: -170px;
+}
+
+.dealmaker{
+    width: 329px;
+    margin-left: 990px;
+    transform: translateY(-315px);
+}
+
+.third-sub-heading{
+    margin-left:  1000px;
+    margin-top: -310px;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+.trumpmusk{
+    width: 300px;
+    margin-left: 40px;
+    margin-bottom: 300px;
+    transform: translateY(50px);
+}
+
+.fourth-sub-heading{
+    margin-left: 39px;
+    transform: translateY(-270px);
+}
+
+:hover.fourth-sub-heading{
+    text-decoration: underline;
+}
+
+.fifth-sub-heading{
+    transform: translateY(-280px);
+    margin-left: 40px;
+}
+.ustatecase{
+    width: 300px;
+    margin-left: 25px;
+    margin-bottom: 300px;
+    transform: translateY(50px);
+}
+.i-sub-heading{
+    margin-left: 390px;
+    transform: translateY(-460px);
+}
+.ii-sub-heading{
+    margin-left: 390px;
+    transform: translateY(-470px);
+}
+.rocky{
+    width: 300px;
+    margin-left: 25px;
+    margin-bottom: 300px;
+    transform: translateY(50px);
+}
+
+.e-sub-heading{
+    margin-left: 710px;
+    transform: translateY(-635px);
+}
+.f-sub-heading{
+    margin-left: 710px;
+    transform: translateY(-650px);
+}
+.rihanna{
+    width: 300px;
+    margin-left: 25px;
+    margin-bottom: 300px;
+    transform: translateY(50px);   
+}
+.a-sub-heading{
+    margin-left: 1030px;
+    transform: translateY(-785px);
+}
+.b-sub-heading{
+    margin-left: 1030px;
+    transform: translateY(-800px);
+}
+.n-sub-heading{
+    margin-left: 1030px;
+    transform: translateY(-810px);
+}
+#footer{
+    color: rgb(192, 55, 55);
+}
+.second-hr{
+    height: 2px;
+    background-color: rgb(12, 11, 11);
+    width: 92%;
+    margin-top: -50px;
+    color: rgb(2, 2, 2);
+}
+body {
+    font-family: Arial, Helvetica, sans-serif;margin: 0;padding: 0;
+}
+.container {
+    width: 100%;max-width: 1200px;margin: 0 auto;
+    padding:20px;
+}
+@media (min-width:768px) {
+    .container {
+        padding: 20px 40px;
+    }
+}
+.sidebar {
+    float: left; width: 30%; 
+}
+.content {
+    float: right; width: 70%;
+}
+.container {
+    padding: 60px;
+}
+.sidebar {
+    width: 25%;
+}
+.content {
+    width: 75%;
+}
+@media (max-width:480px){
+    .container {
+        padding: 10px;
+    }
+    .sidebar {
+        width: 100%;
+    }
+    .content {
+        float: none;
+    }
+}

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>luchies Background changer</title>
+</head>
+<body>
+    <div style="text-align: center; ">
+
+        <button onclick="changeBackgroundColor('red')" style="margin-left: 30px; background-color: red; color: white; border-radius: 5px;">Red</button>
+        <button onclick="changeBackgroundColor('blue')" style="margin-left: 30px; background-color: blue; color: white; border-radius: 5px;">Blue</button>
+        <button onclick="changeBackgroundColor('yellow')" style="margin-left: 30px; background-color: yellow; color: white; border-radius: 5px;">Yellow</button>
+        <button onclick="changeBackgroundColor('green')" style="margin-left: 30px; background-color: green; color: white; border-radius: 5px;">Green</button>
+        <br>
+        <br>
+        <br>
+        <button onclick="changeBackgroundColor('white')" style="margin-right: 30px; border-radius: 5px;">Default</button>
+        <label for="colorPicker">Custom</label>
+        <input type="color" id="colorPicker" name="colorPicker" onchange="changeBackgroundColor(this.value)" style="border-radius: 5px;">
+
+
+    </div>
+
+
+
+
+
+
+
+
+    <script>
+        function changeBackgroundColor(color){
+            document.body.style.background = color;
+        }
+    </script>
+
+
+</body>
+</html>
